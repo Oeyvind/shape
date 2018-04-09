@@ -7,8 +7,9 @@ nchnls = 2
 giSine ftgen 0, 0, 65536, 10, 1
 
 ginum_parms = 10
-chnset ginum_parms, "num_parms"
-ginum_modulators chnget "num_modulators"
+;chnset ginum_parms, "num_parms"
+;ginum_modulators chnget "num_modulators"
+ginum_modulators = 3
 
 ; parameter ranges, mapping
 gSParmnames[] fillarray "amp","cps","phasedist","filter1fq","ring","pw1","pw2","filter2fq","filter2res","filter2dist"

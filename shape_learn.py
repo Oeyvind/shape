@@ -43,8 +43,9 @@ gesture_duration = 1 #just set to smth for now
 control_rate = cs.kr() # get from Csound
 num_frames = int(control_rate*gesture_duration)
 num_sensors = 3
-cs.setControlChannel("num_modulators",num_sensors)
-num_parms = cs.controlChannel("num_parms")[0]
+#cs.setControlChannel("num_modulators",num_sensors)
+#num_parms = cs.controlChannel("num_parms")[0]
+num_parms = 10
 
 # test data, gestural shapes
 ramp = np.array(range(num_frames))/float(num_frames)
