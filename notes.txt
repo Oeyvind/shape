@@ -1,0 +1,7 @@
+* numparms og numsensors communication cs/py
+- hvem setter hva, og når?
+
+* modmatrix file
+* parm offset file
+
+* make audio analysis
