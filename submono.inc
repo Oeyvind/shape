@@ -1,17 +1,3 @@
-; udo
-; output name, input index
-; read from table, scale and map according to mapping type
-kamp read_and_map 0
-kcps read_and_map 1
-kphasedist read_and_map 2
-kfilter1fq read_and_map 3
-kring read_and_map 4
-kpw1 read_and_map 5
-kpw2 read_and_map 6
-kfilter2fq read_and_map 6
-kfilter2res read_and_map 7
-kfilter2dist read_and_map 8
-
 
 ; limits and smoothing
 kphasedist limit (1-kphasedist)*0.5, 0.005, 0.5

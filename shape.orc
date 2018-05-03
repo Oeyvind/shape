@@ -6,10 +6,10 @@ nchnls = 2
 
 giSine ftgen 0, 0, 65536, 10, 1
 
+; auto rewrite from Python
 ginum_parms = 10
-;chnset ginum_parms, "num_parms"
-;ginum_modulators chnget "num_modulators"
-ginum_modulators = 3
+ginum_sensors = 3
+; auto rewrite end
 
 ; parameter ranges, mapping
 gSParmnames[] fillarray "amp","cps","phasedist","filter1fq","ring","pw1","pw2","filter2fq","filter2res","filter2dist"
@@ -19,8 +19,8 @@ gSParm_map[] fillarray "dB", "log", "lin", "log", "lin", "lin", "lin", "log", "l
 
 giParm_in ftgen 0, 0, ginum_parms, -2, 0
 giParm_out ftgen 0, 0, ginum_parms, -2, 0
-giModulators ftgen 0, 0, ginum_modulators, -2, 0
-giModscale ftgen 0, 0, ginum_modulators*ginum_parms, -23, "modmatrix.txt"
+giSensors ftgen 0, 0, ginum_sensors, -2, 0
+giModscale ftgen 0, 0, ginum_sensors*ginum_parms, -23, "modmatrix.txt"
 
 opcode read_and_map, k,i
 index xin
@@ -55,7 +55,7 @@ endin
 instr 5
 ; modulator mapping, modmatrix processing
 kupdate chnget "modmatrix_update"
-modmatrix giParm_out, giModulators, giParm_in, giModscale, ginum_modulators, ginum_parms, kupdate
+modmatrix giParm_out, giSensors, giParm_in, giModscale, ginum_sensors, ginum_parms, kupdate
 endin
 
 
@@ -65,15 +65,24 @@ endin
 instr 10
 endin
 
-; set modmatrix coefficients
-instr 11
-; done in Python as of now
-endin
-
 
 ; synthesize sound
 instr 20
+
+; read from table, scale and map according to mapping type
+kamp read_and_map 0
+kcps read_and_map 1
+kphasedist read_and_map 2
+kfilter1fq read_and_map 3
+kring read_and_map 4
+kpw1 read_and_map 5
+kpw2 read_and_map 6
+kfilter2fq read_and_map 6
+kfilter2res read_and_map 7
+kfilter2dist read_and_map 8
+
 #include "submono.inc"
+
 endin
 
 ; analyze sound

@@ -29,23 +29,40 @@ When actual realtime sensor data is fed through the system, we assume that varia
 
 import ctcsound
 import numpy as np
+import re
+
+num_sensors = 3
+num_parms = 10
+
+newparms = '''; auto rewrite from Python
+ginum_parms = {}
+ginum_sensors = {}
+; auto rewrite end'''.format(num_parms,num_sensors)
+
+orcname = 'shape.orc'
+f = open(orcname, 'r+')
+text = f.read()
+text = re.sub(r"(?s); auto rewrite from Python.*; auto rewrite end", newparms, text)
+f.seek(0)
+f.write(text)
+f.truncate()
+f.close()
+
+gesture_duration = 1 #just set to smth for now
 
 #set up csound
 cs = ctcsound.Csound()
 cs.setOption('-n')
-orcfile = open('shape.orc', 'r')
+orcfile = open(orcname, 'r')
 orc = orcfile.read()
 cs.compileOrc(orc)
 cs.start()
-
-
-gesture_duration = 1 #just set to smth for now
 control_rate = cs.kr() # get from Csound
 num_frames = int(control_rate*gesture_duration)
-num_sensors = 3
-#cs.setControlChannel("num_modulators",num_sensors)
-#num_parms = cs.controlChannel("num_parms")[0]
-num_parms = 10
+
+# names of the audio analysis vectors and the gesture (sensor) vectors
+analysis_vect = ['amplitude', 'pitch', 'centroid', 'envelopecrest', 'spectralflatness', 'spectralcrest', 'spectralflux']
+gesture_vect = ['x', 'y', 'z']
 
 # test data, gestural shapes
 ramp = np.array(range(num_frames))/float(num_frames)
@@ -55,10 +72,6 @@ t2.reverse()
 t1.extend(t2)
 triangle = np.array(t1)/float(num_frames/2)
 sine=np.sin(np.array(ramp)*np.pi*2)
-
-# names of the audio analysis vectors and the gesture (sensor) vectors
-analysis_vect = ['amplitude', 'pitch', 'centroid', 'envelopecrest', 'spectralflatness', 'spectralcrest', 'spectralflux']
-gesture_vect = ['x', 'y', 'z']
 
 gesture_data = np.zeros((num_frames,num_sensors))
 # copy in test data
