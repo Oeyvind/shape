@@ -17,7 +17,7 @@ gkParm_min[] fillarray 0, 50, 0, 20, 0, 0, 0, 20, 0
 gkParm_max[] fillarray 1, 5000, 1, 20000, 1, 1, 1, 20000, 1
 gSParm_map[] fillarray "dB", "log", "lin", "log", "lin", "lin", "lin", "log", "log", "lin", "lin" 
 
-giParm_in ftgen 0, 0, ginum_parms, -2, 0
+giParm_in ftgen 0, 0, ginum_parms, -23, "offsets.txt"
 giParm_out ftgen 0, 0, ginum_parms, -2, 0
 giSensors ftgen 0, 0, ginum_sensors, -2, 0
 giModscale ftgen 0, 0, ginum_sensors*ginum_parms, -23, "modmatrix.txt"
@@ -38,32 +38,25 @@ endif
 xout kval
 endop
 
-instr 4 ; test
-tablew 0.2, 0, giParm_in
-tablew 0.2, 1, giParm_in
-tablew 0.5, 2, giParm_in
-tablew 0.8, 3, giParm_in
-tablew 0.3, 4, giParm_in
-tablew 0.2, 5, giParm_in
-tablew 0.3, 6, giParm_in
-tablew 0.7, 7, giParm_in
-tablew 0.5, 8, giParm_in
-tablew 0.4, 9, giParm_in
-endin
-
-
+; get k+rate control data, map to parameter data in modmatrix
 instr 5
-; modulator mapping, modmatrix processing
-kupdate chnget "modmatrix_update"
-modmatrix giParm_out, giSensors, giParm_in, giModscale, ginum_sensors, ginum_parms, kupdate
+kx chnget "x"
+printk2 kx
+ky chnget "y"
+kz chnget "z"
+tablew kx, 0, giSensors
+tablew ky, 1, giSensors
+tablew kz, 2, giSensors
 endin
 
-
-; get k+rate control data, map to parameter data
-; initialize parameter values,
-; initialize a modmatrix with N control inputs and M parameter outputs
 instr 10
+; modulator mapping, modmatrix processing
+kupdate init 1
+modmatrix giParm_out, giSensors, giParm_in, giModscale, ginum_sensors, ginum_parms, kupdate
+kupdate = 0
 endin
+
+
 
 
 ; synthesize sound
