@@ -1,6 +1,4 @@
 
-* modmatrix file
-* parm offset file
 
 * activate parameter values and modulators in Csound
 

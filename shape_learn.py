@@ -77,17 +77,18 @@ sine=np.sin(np.array(ramp)*np.pi*2)
 
 gesture_data = np.zeros((num_frames,num_sensors))
 # copy in test data
-np.copyto(gesture_data[(np.arange(num_frames),0)], ramp)
-np.copyto(gesture_data[(np.arange(num_frames),1)], sine)
-np.copyto(gesture_data[(np.arange(num_frames),2)], triangle)
-print gesture_data
+for i in range(num_frames):
+    gesture_data[i][0] = ramp[i]
+    gesture_data[i][1] = sine[i]
+    gesture_data[i][2] = triangle[i]
+
 gesture_index = 0
 audio_analysis = np.zeros((num_frames,(len(analysis_vect))))
 while gesture_index<num_frames:
     dataframe = gesture_data[gesture_index]
-    for i in range(len(gesture_vect)-1):
-        cs.setControlChannel(gesture_vect[i],dataframe[i])
-        #print dataframe[i]
+    #for i in range(len(gesture_vect)-1):
+    #    cs.setControlChannel(gesture_vect[i],dataframe[i])
+    cs.setControlChannel("x",random.random())
     cs.performKsmps() #synthesize one audio frame
     for i in range(len(analysis_vect)-1):
         audio_analysis[(gesture_index,i)] = cs.controlChannel(analysis_vect[i])[0]
