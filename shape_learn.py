@@ -51,16 +51,16 @@ gesture_duration = 1 #just set to smth for now
 
 #set up csound
 cs = ctcsound.Csound()
-cs.setOption('-n')
+cs.setOption('-otest.wav')
 orcfile = open(orcname, 'r')
 orc = orcfile.read()
 cs.compileOrc(orc)
 cs.start()
 control_rate = cs.kr() # get from Csound
 num_frames = int(control_rate*gesture_duration)
-cs.inputMessage("i5 0 0.1")#read sensor data, write to modmatrix
-cs.inputMessage("i10 0.1 {}".format(gesture_duration))#run modmatrix
-cs.inputMessage("i20 0.1 {}".format(gesture_duration))#run synth
+cs.inputMessage("i5 0  {}".format(gesture_duration))#read sensor data, write to modmatrix
+cs.inputMessage("i10 0 {}".format(gesture_duration))#run modmatrix
+cs.inputMessage("i20 0 {}".format(gesture_duration))#run synth
 
 # names of the audio analysis vectors and the gesture (sensor) vectors
 analysis_vect = ['amplitude', 'pitch', 'centroid', 'envelopecrest', 'spectralflatness', 'spectralcrest', 'spectralflux']
@@ -86,9 +86,8 @@ gesture_index = 0
 audio_analysis = np.zeros((num_frames,(len(analysis_vect))))
 while gesture_index<num_frames:
     dataframe = gesture_data[gesture_index]
-    #for i in range(len(gesture_vect)-1):
-    #    cs.setControlChannel(gesture_vect[i],dataframe[i])
-    cs.setControlChannel("x",random.random())
+    for i in range(len(gesture_vect)-1):
+        cs.setControlChannel(gesture_vect[i],dataframe[i])
     cs.performKsmps() #synthesize one audio frame
     for i in range(len(analysis_vect)-1):
         audio_analysis[(gesture_index,i)] = cs.controlChannel(analysis_vect[i])[0]
@@ -110,4 +109,4 @@ def do_magic_thing(gesture_data, audio_analysis):
     for i in range(num_parms*num_sensors):
         modmatrixfile.write('{}, '.format(modmatrix[i]))    
 
-#do_magic_thing(gesture_data, audio_analysis)
+do_magic_thing(gesture_data, audio_analysis)

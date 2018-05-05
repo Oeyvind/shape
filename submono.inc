@@ -44,5 +44,6 @@ a2 = alo2*0.9
 
 chnset a1, "a1"
 chnset a2, "a2"
+
 outch 1, a1*amp, 2, a2*amp
 

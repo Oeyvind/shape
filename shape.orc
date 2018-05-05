@@ -41,7 +41,6 @@ endop
 ; get k+rate control data, map to parameter data in modmatrix
 instr 5
 kx chnget "x"
-printk2 kx
 ky chnget "y"
 kz chnget "z"
 tablew kx, 0, giSensors
