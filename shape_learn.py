@@ -30,6 +30,9 @@ When actual realtime sensor data is fed through the system, we assume that varia
 import ctcsound, re, random
 import numpy as np
 
+# settings
+runmode = 'play' # 'learn' or 'play'
+instrument = 'submono' #'sine', submono', or 'vst'
 num_sensors = 3
 num_parms = 10
 
@@ -60,8 +63,14 @@ control_rate = cs.kr() # get from Csound
 num_frames = int(control_rate*gesture_duration)
 cs.inputMessage("i5 0  {}".format(gesture_duration))#read sensor data, write to modmatrix
 cs.inputMessage("i10 0 {}".format(gesture_duration))#run modmatrix
-cs.inputMessage("i20 0 {}".format(gesture_duration))#run synth
-cs.inputMessage("i30 0 {}".format(gesture_duration))#run analysis
+instruments = ['sine', 'submono', 'vst']
+synthinstr = instruments.index(instrument) + 20
+print instrument
+print synthinstr
+cs.inputMessage('''i{} 0 {}'''.format(synthinstr, gesture_duration))#run synth
+if runmode == 'learn':
+    cs.inputMessage("i30 0 {}".format(gesture_duration))#run analysis
+
 
 # names of the audio analysis vectors and the gesture (sensor) vectors
 analysis_vect = ['rms', 'envelopecrest', 'pitch', 'spectralcentroid', 'spectralflatness', 'spectralcrest', 'spectralflux', 'mfccdiff']
@@ -96,8 +105,6 @@ while gesture_index<num_frames:
         print gesture_index
     gesture_index += 1
 
-print audio_analysis
-
 def do_magic_thing(gesture_data, audio_analysis):
     # ... looking at the audio analysis...
     # audio_analysis[(time_index,analysis_vector)]
@@ -114,4 +121,5 @@ def do_magic_thing(gesture_data, audio_analysis):
     for i in range(num_parms*num_sensors):
         modmatrixfile.write('{}, '.format(modmatrix[i]))    
 
-do_magic_thing(gesture_data, audio_analysis)
+if runmode == 'learn':
+    do_magic_thing(gesture_data, audio_analysis)

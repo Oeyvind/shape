@@ -17,11 +17,11 @@ ginum_parms = 10
 ginum_sensors = 3
 ; auto rewrite end
 
-; parameter ranges, mapping
-gSParmnames[] fillarray "amp","cps","phasedist","filter1fq","ring","pw1","pw2","filter2fq","filter2res","filter2dist"
-gkParm_min[] fillarray 0, 50, 0, 20, 0, 0, 0, 20, 0
-gkParm_max[] fillarray 1, 5000, 1, 20000, 1, 1, 1, 20000, 1
-gSParm_map[] fillarray "dB", "log", "lin", "log", "lin", "lin", "lin", "log", "log", "lin", "lin" 
+; generic parameter ranges and mapping, overwritten on selection of active instrument
+gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "
+gkParm_min[] fillarray 0,0,0,0,0,0,0,0,0,0
+gkParm_max[] fillarray 1,1,1,1,1,1,1,1,1,1
+gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin" 
 
 giParm_in ftgen 0, 0, ginum_parms, -23, "offsets.txt"
 giParm_out ftgen 0, 0, ginum_parms, -2, 0
@@ -63,21 +63,11 @@ endin
 
 ; synthesize sound
 instr 20
+#include "sine.inc"
+endin
 
-; read from table, scale and map according to mapping type
-kamp read_and_map 0
-kcps read_and_map 1
-kphasedist read_and_map 2
-kfilter1fq read_and_map 3
-kring read_and_map 4
-kpw1 read_and_map 5
-kpw2 read_and_map 6
-kfilter2fq read_and_map 6
-kfilter2res read_and_map 7
-kfilter2dist read_and_map 8
-
+instr 21
 #include "submono.inc"
-
 endin
 
 ; analyze sound
