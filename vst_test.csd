@@ -37,7 +37,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i 3 0 -1 ; auddio out
+i 3 0 -1 ; audio out
 i 1 1 10 60 76
 e 12
 </CsScore>
