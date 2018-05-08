@@ -61,9 +61,10 @@ num_frames = int(control_rate*gesture_duration)
 cs.inputMessage("i5 0  {}".format(gesture_duration))#read sensor data, write to modmatrix
 cs.inputMessage("i10 0 {}".format(gesture_duration))#run modmatrix
 cs.inputMessage("i20 0 {}".format(gesture_duration))#run synth
+cs.inputMessage("i30 0 {}".format(gesture_duration))#run analysis
 
 # names of the audio analysis vectors and the gesture (sensor) vectors
-analysis_vect = ['amplitude', 'pitch', 'centroid', 'envelopecrest', 'spectralflatness', 'spectralcrest', 'spectralflux']
+analysis_vect = ['rms', 'envelopecrest', 'pitch', 'spectralcentroid', 'spectralflatness', 'spectralcrest', 'spectralflux', 'mfccdiff']
 gesture_vect = ['x', 'y', 'z']
 
 # test data, gestural shapes
@@ -94,6 +95,8 @@ while gesture_index<num_frames:
     if gesture_index%100==0: 
         print gesture_index
     gesture_index += 1
+
+print audio_analysis
 
 def do_magic_thing(gesture_data, audio_analysis):
     #...optimize modulation matrix and offsets

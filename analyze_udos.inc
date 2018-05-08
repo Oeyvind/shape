@@ -62,7 +62,7 @@ double:
 ; epoch filtering udo
 	opcode EpochCps, k,a
 	a1              xin 
-	                setksmps 8
+	;                setksmps 8
 	a20		butterbp a1, 20, 5
 	a20		dcblock2 a20*40
 	aepochSig	butlp a20, 200
