@@ -31,7 +31,7 @@ import ctcsound, re, random, Tkinter
 import numpy as np
 
 # settings
-runmode = 'play' # record, 'learn', 'play'
+runmode = 'record' # record, 'learn', 'play'
 instrument = 'submono' #'sine' or submono'
 num_sensors = 3
 num_parms = 10
@@ -58,6 +58,8 @@ def mouseup(event):
 
 if runmode == 'record':
     p = Tkinter.Tk()
+    p.bind("<Button 1>",getorigin)
+    p.mainloop()
     
 else:
     newparms = '''; auto rewrite from Python
