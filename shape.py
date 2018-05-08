@@ -27,39 +27,55 @@ When actual realtime sensor data is fed through the system, we assume that varia
 """
 
 
-import ctcsound, re, random, Tkinter
+import ctcsound, re, random, Tkinter, time, json, sys
 import numpy as np
 
 # settings
-runmode = 'record' # record, 'learn', 'play'
+runmode = 'printgestures' # record, 'learn', 'play'
+gesturetype = 'recorded' # 'recorded', 'synthetic'
 instrument = 'submono' #'sine' or submono'
 num_sensors = 3
 num_parms = 10
+recordbuffers = []
+recordbuffer = []
 
-def getorigin(eventorigin):
-    global x,y
-    x = eventorigin.x
-    y = eventorigin.y
-    print(x,y)
-
-def pollposition(event):
-    global buttonstate
-    while buttonstate == 1:
-        getorigin(event)
-
+def record(event):
+    x, y = event.x, event.y
+    global timenow, recordbuffer
+    t = time.time() - timenow
+    print('{}, {}, {}'.format(t, x, y))
+    recordbuffer.append([t,x,y])
+    
 def mousedown(event):
-    global buttonstate
-    buttonstate = 1
+    global timenow, recordbuffer
+    recordbuffer = []
+    timenow = time.time()
 
 def mouseup(event):
-    global buttonstate
-    buttonstate = 0
+    global recordbuffer, recordbuffers
+    recordbuffers.append(recordbuffer)
     
-
 if runmode == 'record':
     p = Tkinter.Tk()
-    p.bind("<Button 1>",getorigin)
+    p.bind("<Button 1>",mousedown)
+    p.bind("<ButtonRelease-1>",mouseup)
+    p.bind('<B1-Motion>', record)
     p.mainloop()
+    for gesture in recordbuffers:
+        print '***'
+        print gesture
+    gesturefilename = 'gestures.txt'
+    g = open(gesturefilename, 'w')
+    g.write(json.dumps(recordbuffers))
+    g.close()
+elif runmode == 'printgestures':
+    gesturefilename = 'gestures.txt'
+    g = open(gesturefilename, 'r+')
+    gson = g.read()
+    gestures = json.loads(gson)
+    for gesture in gestures:
+        print '***'
+        print gesture     
     
 else:
     newparms = '''; auto rewrite from Python
