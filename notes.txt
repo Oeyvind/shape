@@ -1,5 +1,3 @@
 
 
-* activate parameter values and modulators in Csound
-
 * make audio analysis

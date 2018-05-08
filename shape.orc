@@ -5,6 +5,12 @@ nchnls = 2
 0dbfs = 1
 
 giSine ftgen 0, 0, 65536, 10, 1
+gifftsize 	= 1024
+giFftTabSize	= (gifftsize / 2)+1
+gifna     	ftgen   1 ,0 ,giFftTabSize, 7, 0, giFftTabSize, 0   	; for pvs analysis
+gifnf     	ftgen   2 ,0 ,giFftTabSize, 7, 0, giFftTabSize, 0   	; for pvs analysis
+
+#include "analyze_udos.inc"
 
 ; auto rewrite from Python
 ginum_parms = 10
@@ -55,9 +61,6 @@ modmatrix giParm_out, giSensors, giParm_in, giModscale, ginum_sensors, ginum_par
 kupdate = 0
 endin
 
-
-
-
 ; synthesize sound
 instr 20
 
@@ -78,7 +81,12 @@ kfilter2dist read_and_map 8
 endin
 
 ; analyze sound
-; output file of k+rate control data 
 instr 30
+a1 chnget "a1"
+a2 chnget "a2"
+a1 = a1+a2*0.5
+#include "analysis_parms.inc"
+#include "analyze_audio.inc"
+#include "analysis_chnset.inc"
 endin
 
