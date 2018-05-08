@@ -101,7 +101,7 @@ print audio_analysis
 def do_magic_thing(gesture_data, audio_analysis):
     # ... looking at the audio analysis...
     # audio_analysis[(time_index,analysis_vector)]
-    #...optimize modulation matrix and offsets
+    #...optimize modulation matrix and offsets 
     offsetfile = open('offsets.txt', 'w')
     modmatrixfile = open('modmatrix.txt', 'w')
     modmatrix = np.zeros(num_parms*num_sensors)
