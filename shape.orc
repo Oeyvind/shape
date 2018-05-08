@@ -13,9 +13,9 @@ gifnf     	ftgen   2 ,0 ,giFftTabSize, 7, 0, giFftTabSize, 0   	; for pvs analys
 #include "analyze_udos.inc"
 
 ; auto rewrite from Python
-ginum_parms = 10
-ginum_sensors = 3
-; auto rewrite end
+    ginum_parms = 10
+    ginum_sensors = 3
+    ; auto rewrite end
 
 ; generic parameter ranges and mapping, overwritten on selection of active instrument
 gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "
@@ -69,6 +69,7 @@ endin
 instr 21
 #include "submono.inc"
 endin
+
 
 ; analyze sound
 instr 30
