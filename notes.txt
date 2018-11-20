@@ -1,3 +1,4 @@
 
+* run myo in separate process, send data to OSC
 
 * load recorded gestures in expanded format (continuous time), or play recorded events based on time

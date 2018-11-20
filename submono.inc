@@ -62,5 +62,10 @@ a2 = alo2*0.8
 chnset a1, "a1"
 chnset a2, "a2"
 
-outch 1, a1*amp, 2, a2*amp
+;testing
+kmetro metro 1
+printk2 kmetro
+atest poscil 0.5, 440
+
+outch 1, a1*amp, 2, atest*amp
 

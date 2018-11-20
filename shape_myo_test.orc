@@ -13,9 +13,9 @@ gifnf     	ftgen   2 ,0 ,giFftTabSize, 7, 0, giFftTabSize, 0   	; for pvs analys
 #include "analyze_udos.inc"
 
 ; auto rewrite from Python
-ginum_parms = 10
-ginum_sensors = 3
-; auto rewrite end
+    ginum_parms = 10
+    ginum_sensors = 3
+    ; auto rewrite end
 
 ; generic parameter ranges and mapping, overwritten on selection of active instrument
 gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "
@@ -46,9 +46,10 @@ endop
 
 ; get k+rate control data, map to parameter data in modmatrix
 instr 5
-kx chnget "x"
-ky chnget "y"
-kz chnget "z"
+kx chnget "myo1"
+ky chnget "myo2"
+kz chnget "myo3"
+printk2 kx
 tablew kx, 0, giSensors
 tablew ky, 1, giSensors
 tablew kz, 2, giSensors
