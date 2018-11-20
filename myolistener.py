@@ -1,7 +1,7 @@
 # The MIT License (MIT)
 #
 # Copyright (c) 2017 Niklas Rosenstein
-# Minor modification by Oeyvind Brandtsegg 2018, adaption to the Shape project
+# Minor modification by Oeyvind Brandtsegg 2018, send data to OSC 
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
@@ -21,18 +21,18 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 """
-This example displays the orientation, pose and RSSI as well as EMG data
-if it is enabled and whether the device is locked or unlocked in the
-terminal.
+This example send Myo data to OSC.
 
-Enable EMG streaming with double tap and disable it with finger spread.
+Data is orientation, pose and RSSI as well as EMG data
+if it is enabled and whether the device is locked or unlocked in the
+terminal. Enable EMG streaming with double tap and disable it with finger spread.
 
 """
 
 from __future__ import print_function
 from myo.utils import TimeInterval
-import myo
-import sys
+import myo, sys, OSC, threading, math
+
 
 
 class Listener(myo.DeviceListener):
@@ -45,28 +45,58 @@ class Listener(myo.DeviceListener):
     self.locked = False
     self.rssi = None
     self.emg = None
-    self.parms = []
+    send_address = '127.0.0.1', 9098
+    print("Sending Myo data on {}".format(send_address))
+    print("Ctrl+C to quit")
+    self.client = OSC.OSCClient()
+    self.client.connect(send_address)
+ 
 
   def output(self):
     if not self.interval.check_and_reset():
       return
     
-    self.parms = []
+    parms = []
     if self.orientation:
-      for comp in self.orientation:
-        self.parms.append(comp)
-    '''
-    parts.append(str(self.pose).ljust(10))
-    parts.append('E' if self.emg_enabled else ' ')
-    parts.append('L' if self.locked else ' ')
-    parts.append(self.rssi or 'NORSSI')
-    if self.emg:
-      for comp in self.emg:
-        parts.append(str(comp).ljust(5))
-    print('\r' + ''.join('[{}]'.format(p) for p in parts), end='')
-    sys.stdout.flush()
-    '''
+      for q in self.orientation:
+        parms.append(q)
+      #mapping quaternions to normalized control values
+      angles = self.toEulerAngle(parms)
+      rpy = self.normalizeAndOffset(angles)
+      # send to OSC
+      for i in range(len(rpy)):
+        msg = OSC.OSCMessage() 
+        msg.setAddress("/Myo/{}".format(i+1))
+        msg.append(rpy[i]) 
+        self.client.send(msg)
+  
+  def normalizeAndOffset(self, angles):
+     r,p,y = angles
+     r = r/(2*math.pi)+0.5
+     p = p/(2*math.pi)+0.5
+     y = (y/(2*math.pi)+1.0)%1.0
+     return r,p,y
     
+  def toEulerAngle(self, quats):
+    """ Quaternion to Euler angle conversion borrowed from wikipedia.
+        https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles """
+    w,x,y,z = quats
+    # roll (x-axis rotation)
+    sinr = +2.0 * (w * x + y * z)
+    cosr = +1.0 - 2.0 * (x * x + y * y)
+    roll = math.atan2(sinr, cosr)
+    # pitch (y-axis rotation)
+    sinp = +2.0 * (w * y - z * x)
+    if (math.fabs(sinp) >= 1):
+      pitch = math.copysign(math.pi / 2, sinp)  # use 90 degrees if out of range
+    else:
+      pitch = math.asin(sinp)
+    # yaw (z-axis rotation)
+    siny = +2.0 * (w * z + x * y)
+    cosy = +1.0 - 2.0 * (y * y + z * z)
+    yaw = math.atan2(siny, cosy)
+    return roll, pitch, yaw
+
   def on_connected(self, event):
     event.device.request_rssi()
 
@@ -102,9 +132,12 @@ class Listener(myo.DeviceListener):
     self.output()
 
 
+
+
 if __name__ == '__main__':
+  # Start Myo listener
   myo.init('../Myo/myo-sdk-win-0.9.0/bin/myo64.dll')
   hub = myo.Hub()
   listener = Listener()
   while hub.run(listener.on_event, 500):
-    print(listener.parms)
+    pass

@@ -28,11 +28,37 @@ Simple setup for using the Myo armband to control some synthesis parameters.
 
 import ctcsound, re
 import numpy as np
-import myolistener as m
-myopath = '../Myo/myo-sdk-win-0.9.0/bin/myo64.dll'
-m.myo.init(myopath)
-myohub = m.myo.Hub()
-myolistener = m.Listener()
+myodata = [0,0,0,0]
+
+###################### OSC Server, get sensor data ###################### 
+import OSC
+import time, threading
+receive_address = '127.0.0.1', 9098
+s = OSC.OSCServer(receive_address) # basic
+s.addDefaultHandlers()
+def control_handler(addr, tags, data, source):
+  value = data[0]
+  if "Myo" in addr:
+    n = int(addr.split("/")[-1])  
+    myodata[n-1] = value
+s.addMsgHandler("/Myo/1", control_handler) 
+s.addMsgHandler("/Myo/2", control_handler) 
+s.addMsgHandler("/Myo/3", control_handler) 
+s.addMsgHandler("/Myo/4", control_handler) 
+
+# just checking which handlers we have added
+print "Registered Callback-functions are :"
+for addr in s.getOSCAddressSpace():
+    print addr
+
+
+# Start OSCServer
+print "\nStarting Myo OSCServer. Use ctrl-C to quit."
+st = threading.Thread( target = s.serve_forever )
+st.start()
+
+
+###################### Csound, generate audio ###################### 
 
 # settings
 instrument = 'submono' #'sine' or submono'
@@ -40,7 +66,7 @@ num_sensors = 3
 num_parms = 10
 csdur = 86400 # run duration in seconds
 
-orcname = 'shape.orc'
+orcname = 'shape_myo_test.orc'
 f = open(orcname, 'r+')
 text = f.read()
 newparms = '''; auto rewrite from Python
@@ -55,7 +81,7 @@ f.close()
         
 #set up csound
 cs = ctcsound.Csound()
-cs.setOption('-odac')
+cs.setOption('-odac0')
 orcfile = open(orcname, 'r')
 orc = orcfile.read()
 cs.compileOrc(orc)
@@ -69,11 +95,18 @@ print instrument
 print synthinstr
 cs.inputMessage('''i{} 0 {}'''.format(synthinstr, csdur))#run synth
 
-
-#while myohub.run(myolistener.on_event, 500):
-#    if myolistener.orientation:
+err = 0
 while True:
-        #cs.setControlChannel('myo1', myolistener.parms[0])
-        #cs.setControlChannel('myo2', myolistener.parms[1])
-        #cs.setControlChannel('myo3', myolistener.parms[2])
-        cs.performKsmps() #synthesize one audio frame
+  cs.setControlChannel('myo1', myodata[0])
+  cs.setControlChannel('myo2', myodata[1])
+  cs.setControlChannel('myo3', myodata[2])
+  cs.setControlChannel('myo4', myodata[3])
+  err = cs.performKsmps() #synthesize one audio frame
+  if err != 0: 
+    break
+print "\nClosing OSCServer."
+s.close()
+print "Waiting for Server-thread to finish"
+st.join() 
+print "Done"
+

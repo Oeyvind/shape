@@ -2,19 +2,20 @@
 gSParmnames[] fillarray "amp","cps","phasedist","filter1fq","ring","pw1","pw2","filter2fq","filter2res","filter2dist"
 gkParm_min[] fillarray 0, 50, 0, 20, 0, 0, 0, 20, 0
 gkParm_max[] fillarray 1, 5000, 1, 20000, 1, 1, 1, 20000, 1
-gSParm_map[] fillarray "dB", "log", "lin", "log", "lin", "lin", "lin", "log", "log", "lin", "lin" 
+gSParm_map[] fillarray "dB", "log", "lin", "log", "lin", "lin", "lin", "log", "lin", "lin" 
 
 ; read from table, scale and map according to mapping type
 kamp read_and_map 0
 kcps read_and_map 1
+kcps tonek kcps, 10
 kphasedist read_and_map 2
 kfilter1fq read_and_map 3
 kring read_and_map 4
 kpw1 read_and_map 5
 kpw2 read_and_map 6
-kfilter2fq read_and_map 6
-kfilter2res read_and_map 7
-kfilter2dist read_and_map 8
+kfilter2fq read_and_map 7
+kfilter2res read_and_map 8
+kfilter2dist read_and_map 9
 
 ; limits and smoothing
 kphasedist limit (1-kphasedist)*0.5, 0.005, 0.5
@@ -62,10 +63,6 @@ a2 = alo2*0.8
 chnset a1, "a1"
 chnset a2, "a2"
 
-;testing
-kmetro metro 1
-printk2 kmetro
-atest poscil 0.5, 440
 
-outch 1, a1*amp, 2, atest*amp
+outch 1, a1*amp, 2, a2*amp
 

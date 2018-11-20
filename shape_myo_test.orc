@@ -13,20 +13,20 @@ gifnf     	ftgen   2 ,0 ,giFftTabSize, 7, 0, giFftTabSize, 0   	; for pvs analys
 #include "analyze_udos.inc"
 
 ; auto rewrite from Python
-    ginum_parms = 10
-    ginum_sensors = 3
-    ; auto rewrite end
+ginum_parms = 10
+ginum_sensors = 3
+; auto rewrite end
 
 ; generic parameter ranges and mapping, overwritten on selection of active instrument
 gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "
 gkParm_min[] fillarray 0,0,0,0,0,0,0,0,0,0
 gkParm_max[] fillarray 1,1,1,1,1,1,1,1,1,1
-gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin" 
+gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
 
-giParm_in ftgen 0, 0, ginum_parms, -23, "offsets.txt"
+giParm_in ftgen 0, 0, ginum_parms, -23, "offsets_myotest.txt"
 giParm_out ftgen 0, 0, ginum_parms, -2, 0
-giSensors ftgen 0, 0, ginum_sensors, -2, 0
-giModscale ftgen 0, 0, ginum_sensors*ginum_parms, -23, "modmatrix.txt"
+giSensors ftgen 0, 0, ginum_sensors+1, -2, 0
+giModscale ftgen 0, 0, ginum_sensors*ginum_parms, -23, "modmatrix_myotest.txt"
 
 opcode read_and_map, k,i
 index xin
@@ -49,10 +49,12 @@ instr 5
 kx chnget "myo1"
 ky chnget "myo2"
 kz chnget "myo3"
-printk2 kx
+Stest sprintfk "%f.03 %f.03 %f.03", kx,ky,kz
+;puts Stest, changed(kx)+1
 tablew kx, 0, giSensors
 tablew ky, 1, giSensors
 tablew kz, 2, giSensors
+
 endin
 
 instr 10

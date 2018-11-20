@@ -1,3 +1,15 @@
+
+* test run:
+python myolistener.py (get data from myo, send over OSC)
+python shape_myo_test.py (run Csound, get myo data over OSC, map to synthesis parameters)
+
+* mapping of parameters set in modmatrix_myotest.txt
+where there are 3 lines, one for each sensor input
+each line has 10 values, representing the scaling of each sensor to each parameter
+Parameter list is currently in submono.inc, where the audio is also generated.
+
+********* original intention for readme:
+
 Shape
 
 Self-learning instrument. 
