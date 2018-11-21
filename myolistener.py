@@ -50,32 +50,40 @@ class Listener(myo.DeviceListener):
     print("Ctrl+C to quit")
     self.client = OSC.OSCClient()
     self.client.connect(send_address)
- 
+    self.ypr = None
+    self.orientstring = []
 
   def output(self):
     if not self.interval.check_and_reset():
       return
-    
+
+    self.orientstring = []
     parms = []
     if self.orientation:
       for q in self.orientation:
         parms.append(q)
+        self.orientstring.append('{}{:.4f}'.format(' ' if q >= 0 else '', q))
       #mapping quaternions to normalized control values
       angles = self.toEulerAngle(parms)
-      rpy = self.normalizeAndOffset(angles)
+      ypr = self.normalizeAndOffset(angles)
+      self.ypr = ypr
       # send to OSC
-      for i in range(len(rpy)):
+      for i in range(len(ypr)):
         msg = OSC.OSCMessage() 
         msg.setAddress("/Myo/{}".format(i+1))
-        msg.append(rpy[i]) 
+        msg.append(ypr[i]) 
         self.client.send(msg)
   
   def normalizeAndOffset(self, angles):
-     r,p,y = angles
-     r = r/(2*math.pi)+0.5
-     p = p/(2*math.pi)+0.5
-     y = (y/(2*math.pi)+1.0)%1.0
-     return r,p,y
+     # get yaw, pitch, roll of 0.5, 0.5, 0.5 when your arm is pointing straight in front of you
+     # yaw increase to the right
+     # pitch increase up
+     # roll increase clockwise
+     y,p,r = angles
+     y = 1-((y/(2*math.pi)+0.5))
+     p = 1-(p/(2*math.pi)+0.5) #
+     r = ((r/(2*math.pi)+1.0)%1.0)
+     return y,p,r
     
   def toEulerAngle(self, quats):
     """ Quaternion to Euler angle conversion borrowed from wikipedia.
@@ -140,4 +148,6 @@ if __name__ == '__main__':
   hub = myo.Hub()
   listener = Listener()
   while hub.run(listener.on_event, 500):
+    #print('Q:'+str(listener.orientstring))
+    #print('YPR:'+str(listener.ypr))
     pass
