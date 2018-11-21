@@ -148,6 +148,6 @@ if __name__ == '__main__':
   hub = myo.Hub()
   listener = Listener()
   while hub.run(listener.on_event, 500):
-    #print('Q:'+str(listener.orientstring))
+    print('Q:'+str(listener.orientstring))
     #print('YPR:'+str(listener.ypr))
     pass

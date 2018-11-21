@@ -26,7 +26,7 @@ Simple setup for using the Myo armband to control some synthesis parameters.
 """
 
 
-import ctcsound, re
+import ctcsound, re, sys
 import numpy as np
 myodata = [0,0,0,0]
 
@@ -81,7 +81,12 @@ f.close()
         
 #set up csound
 cs = ctcsound.Csound()
-cs.setOption('-odac0')
+csaudio = 'odac'
+print('**************************'+str(sys.argv))
+if len(sys.argv) > 1:
+  csaudio = sys.argv[1]
+  print(csaudio)
+cs.setOption(csaudio)
 orcfile = open(orcname, 'r')
 orc = orcfile.read()
 cs.compileOrc(orc)
