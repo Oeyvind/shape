@@ -111,3 +111,6 @@ class GestureClassifier:
         
     def predict(self, x):
         return self.model.predict(x), self.embedding.predict(x)
+
+class Mapper:
+    pass
