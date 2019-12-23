@@ -31,14 +31,14 @@ terminal. Enable EMG streaming with double tap and disable it with finger spread
 
 from __future__ import print_function
 from myo.utils import TimeInterval
-import myo, sys, OSC, threading, math
+import myo, sys, OSC, threading, math, time
 
 
 
 class Listener(myo.DeviceListener):
 
   def __init__(self):
-    self.interval = TimeInterval(None, 0.05)
+    self.interval = TimeInterval(None, 0.02)
     self.orientation = None
     self.pose = myo.Pose.rest
     self.emg_enabled = False
@@ -52,11 +52,15 @@ class Listener(myo.DeviceListener):
     self.client.connect(send_address)
     self.ypr = None
     self.orientstring = []
-
+    self.t = time.time()
+    self.delta = 0
+    
   def output(self):
     if not self.interval.check_and_reset():
       return
-
+    self.delta = time.time()-self.t
+    self.t = time.time()
+    
     self.orientstring = []
     parms = []
     if self.orientation:
@@ -73,7 +77,7 @@ class Listener(myo.DeviceListener):
         msg.setAddress("/Myo/{}".format(i+1))
         msg.append(ypr[i]) 
         self.client.send(msg)
-  
+        
   def normalizeAndOffset(self, angles):
      # get yaw, pitch, roll of 0.5, 0.5, 0.5 when your arm is pointing straight in front of you
      # yaw increase to the right
@@ -148,6 +152,7 @@ if __name__ == '__main__':
   hub = myo.Hub()
   listener = Listener()
   while hub.run(listener.on_event, 500):
-    print('Q:'+str(listener.orientstring))
-    #print('YPR:'+str(listener.ypr))
+    #print('Q:'+str(listener.orientstring))
+    print('YPR:'+str(listener.ypr))
+    print('Processloop delta:'+str(listener.delta))
     pass
