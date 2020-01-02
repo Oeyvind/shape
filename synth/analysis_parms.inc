@@ -1,0 +1,11 @@
+chnset 2000, "preEqHiShelfFq"
+chnset 5, "preEqHiShelfGain"
+chnset -40, "inputNoisefloor"
+chnset 4, "amp_transientThresh"            
+chnset 0.05, "amp_transientDoubleLimit"   
+chnset 4, "amp_transientDecThresh"       
+chnset 1, "pitchmethod"
+chnset 100, "pitch_low"
+chnset 1000, "pitch_high"
+chnset 25, "pitchFilterSize"
+
