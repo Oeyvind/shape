@@ -44,6 +44,8 @@ class CoreTest(unittest.TestCase):
         cls.output_dim = 10
 
         cls.processes.append(mp.Process(target=learn, args=(cls.output_dim,)))
+        import time
+        time.sleep(5)
         cls.processes.append(mp.Process(target=predict, args=(cls.output_dim,)))
 
         cls.test_trajectories = [ circle, spiral ]
