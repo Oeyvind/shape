@@ -30,6 +30,7 @@ PREDICT = 7000
 LEARN = 7001
 FEEDBACK = 7002
 MODEL = 7003
+READY = 7004
 DEATH = 6666
 
 DEATH_PUB = 'death_pub'
@@ -39,6 +40,8 @@ MODEL_PUSH = 'model_push'
 MODEL_PULL = 'model_pull'
 PREDICT_REP = 'predict_rep'
 PREDICT_REQ = 'predict_req'
+READY_REP = 'ready_rep'
+READY_REQ = 'ready_req'
 
 class Communicator:
 
@@ -84,6 +87,16 @@ class Communicator:
             self.predict_req = context.socket(zmq.REQ)
             self.predict_req.connect('tcp://localhost:{}'.format(PREDICT))
 
+        if READY_REP in required_sockets:
+            self.ready_rep = context.socket(zmq.REP)
+            self.ready_rep.bind('tcp://*:{}'.format(READY))
+            self.poller.register(self.ready_rep, zmq.POLLIN)
+
+        if READY_REQ in required_sockets:
+            self.ready_req = context.socket(zmq.REQ)
+            self.ready_req.connect('tcp://localhost:{}'.format(READY))
+            
+
         self.required_sockets = required_sockets
 
         
@@ -105,8 +118,12 @@ class Communicator:
             if MODEL_PULL in self.required_sockets and socks.get(self.model_pull) == zmq.POLLIN:
                 yield [ MODEL_PULL, self.model_pull.recv_pyobj() ]
 
-            if PREDICT_REP in self.required_sockets and socks.get(self.predict_rep) == zmq.POLLIN:
-                yield [ PREDICT_REP, self.predict_rep.recv_pyobj() ]
-
             if LEARN_PULL in self.required_sockets and socks.get(self.learn_pull) == zmq.POLLIN:
                 yield [ LEARN_PULL, self.learn_pull.recv_pyobj() ]
+
+            if PREDICT_REP in self.required_sockets and socks.get(self.predict_rep) == zmq.POLLIN:
+                yield [ PREDICT_REP, self.predict_rep.recv_pyobj() ]
+                
+            if READY_REP in self.required_sockets and socks.get(self.ready_rep) == zmq.POLLIN:
+                yield [ READY_REP, self.ready_rep.recv_pyobj() ]
+

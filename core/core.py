@@ -38,13 +38,19 @@ import communicator as cm
 GESTURE = 'gesture'
 MAPPING = 'mapping'
 
+LEARN_READY = 'learn_ready'
+PREDICT_READY = 'predict_ready'
+
 def learn(output_dim):
     print('Learning process started')
 
-    comm = cm.Communicator([cm.LEARN_PULL, cm.MODEL_PUSH])
-     
+    comm = cm.Communicator([cm.LEARN_PULL, cm.MODEL_PUSH, cm.READY_REQ])
+
     gesture_model = None
     mapping_model = None
+
+    comm.ready_req.send_pyobj(LEARN_READY)
+    comm.ready_req.recv_pyobj()
 
     for _, novelty in next(comm):
 
@@ -71,7 +77,7 @@ def learn(output_dim):
 
                 comm.model_push.send_pyobj([ GESTURE, model_file, embedding_file ])
 
-        # A mapping to be learned
+        # A mapping to be learned, i.e. the novelty is a list of x,y pairs.
         else:
             if mapping_model is None:
                 print('Mapping model created')
@@ -81,14 +87,16 @@ def learn(output_dim):
                 print('Training new mapping model')
             
             
-
     print('Learning process exit')
 
     
 def predict(output_dim):
     print('Prediction process started')
 
-    comm = cm.Communicator([cm.MODEL_PULL, cm.PREDICT_REP])
+    comm = cm.Communicator([cm.MODEL_PULL, cm.PREDICT_REP, cm.READY_REQ])
+
+    comm.ready_req.send_pyobj(PREDICT_READY)
+    comm.ready_req.recv_pyobj()
     
     gesture_model = None
     mapping_model = None
@@ -119,16 +127,3 @@ def predict(output_dim):
                 comm.predict_rep.send_pyobj([ False, False, False, False ])
                 
     print('Prediction process exit')
-
-
-if __name__ == '__main__':
-    processes = []
-    output_dim = 10
-    processes.append(mp.Process(target=learn, args=(output_dim,)))
-    processes.append(mp.Process(target=predict, args=(output_dim,)))
-
-    for p in processes:
-        p.start()
-
-    for p in processes:
-        p.join()
