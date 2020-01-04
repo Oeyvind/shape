@@ -113,4 +113,62 @@ class GestureClassifier:
         return self.model.predict(x), self.embedding.predict(x)
 
 class Mapper:
-    pass
+
+    # Noise std is lower here, because it is assumed these kinds of mappings will be 
+    # closer in the high-dimensional feature space
+    def __init__(self, input_dim, output_dim, n_hidden_layers=2,
+                 hidden_size=128, noise_std=.01, epochs=10, n_augments=100,
+                 validation_split=.2):
+
+        inputs = layers.Input(shape=(input_dim,))
+
+        x = inputs
+
+        for _ in range(n_hidden_layers):
+            x = layers.Dense(hidden_size, activation='elu')(x)
+
+        outputs = layers.Dense(output_dim)(x)
+
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        self.model.compile(loss=tf.keras.losses.Huber(), optimizer='adam')
+
+        self.data = []
+        self.noise_std = noise_std
+        self.epochs = epochs
+        self.n_augments = n_augments
+        self.validation_split = validation_split
+
+        
+    def add_datapoint(self, x_y):
+        self.data.append(x_y)
+
+        
+    def _data_augmentation(self):
+        x, _ = zip(*self.data)
+
+        x = np.stack(x)
+
+        repeated = np.repeat(x, self.n_augments, axis=0)
+
+        noised = repeated + np.random.normal(0, self.noise_std, size=repeated.shape)
+
+        return noised
+    
+    
+    def training_data(self):
+        x = self._data_augmentation()
+        _, y = zip(*self.data)
+
+        y = np.stack(y)
+        y = np.repeat(y, self.n_augments, axis=0)
+
+        return shuffle(x,y)
+
+    
+    def train(self):
+        x, y = self.training_data()
+        self.model.fit(x, y, epochs=self.epochs, validation_split=self.validation_split)
+
+        
+    def predict(self, x):
+        return self.model.predict(x)

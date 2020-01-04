@@ -29,7 +29,7 @@ import time
 import numpy as np
 import zmq
 
-from core import learn, predict
+import core
 import communicator as cm
 from faux_gestures import circle, spiral, sine
 
@@ -38,20 +38,28 @@ class CoreTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
 
-        cls.comm = cm.Communicator([cm.LEARN_PUSH, cm.PREDICT_REQ, cm.DEATH_PUB])
+        cls.comm = cm.Communicator([cm.LEARN_PUSH, cm.PREDICT_REQ, cm.DEATH_PUB, cm.READY_REP])
         
         cls.processes = []
         cls.output_dim = 10
 
-        cls.processes.append(mp.Process(target=learn, args=(cls.output_dim,)))
-        import time
-        time.sleep(5)
-        cls.processes.append(mp.Process(target=predict, args=(cls.output_dim,)))
+        cls.processes.append(mp.Process(target=core.learn, args=(cls.output_dim,)))
+        cls.processes.append(mp.Process(target=core.predict, args=(cls.output_dim,)))
 
         cls.test_trajectories = [ circle, spiral ]
 
         for p in cls.processes:
             p.start()
+
+        # Wait for the processes to be ready.
+        waiting = [ core.LEARN_READY, core.PREDICT_READY ]
+        for _, ready_process in next(cls.comm):
+            waiting.remove(ready_process)
+            cls.comm.ready_rep.send_pyobj(None) # Dummy reply
+
+            if len(waiting) == 0:
+                break
+
 
     def test_learn(self):
         for signal in self.test_trajectories:

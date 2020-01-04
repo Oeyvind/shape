@@ -28,7 +28,7 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from models import GestureClassifier, MASK_VALUE
+from models import GestureClassifier, Mapper, MASK_VALUE
 from faux_gestures import trajectories
 
 class GestureClassifierTest(unittest.TestCase):
@@ -82,6 +82,25 @@ class GestureClassifierTest(unittest.TestCase):
 
         predictions, embeddings = self.model.predict(self.model._pad(trajectories))
         self.assertTrue(all(np.argmax(predictions, axis=1) == range(len(trajectories))))
+
+
+class MapperTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        input_dim = 10
+        output_dim = 5
+        cls.model = Mapper(input_dim, output_dim)
+
+        n_mappings = 10
+        
+        for _ in range(n_mappings):
+            cls.model.add_datapoint([ np.random.rand(input_dim), np.random.rand(output_dim) ])
+        
+
+    def test_train_predict(self):
+        self.model.train()
+
         
 if __name__ == '__main__':
     unittest.main()
