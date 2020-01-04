@@ -1,8 +1,8 @@
 ; parameter ranges, mapping
 gSParmnames[] fillarray "amp","cps","phasedist","filter1fq","ring","pw1","pw2","filter2fq","filter2res","filter2dist"
-gkParm_min[] fillarray 0, 50, 0, 20, 0, 0, 0, 20, 0
-gkParm_max[] fillarray 1, 5000, 1, 20000, 1, 1, 1, 20000, 1
-gSParm_map[] fillarray "dB", "log", "lin", "log", "lin", "lin", "lin", "log", "lin", "lin" 
+gkParm_min[] fillarray 0, 50, 0, 20, 0, 0, 0, 20, 0, 0
+gkParm_max[] fillarray 1, 5000, 1, 20000, 1, 1, 1, 20000, 1, 3
+gSParm_map[] fillarray "lin", "log", "lin", "log", "lin", "lin", "lin", "log", "lin", "lin" 
 
 ; default values for unmapped parms
 tableiw 1, 0, giParm_values
@@ -47,8 +47,6 @@ aring = avco1*avco2
 
 aleft = ((avco1)*(1-kring) + aring*kring)
 aright = ((avco2)*(1-kring) + aring*kring)
-;aleft balance aleft, avco1, 2
-;aright balance aright, avco2, 2
 
 aphas vco2 1, kcps, imode, kphasedist
 
@@ -74,7 +72,6 @@ a2 = alo2*0.8
 
 chnset a1, "a1"
 chnset a2, "a2"
-
 
 outch 1, a1*amp, 2, a2*amp
 

@@ -24,70 +24,47 @@ Synth
 Run Csound synthesizer
 """
 
-import ctcsound, sys, os, re
+import ctcsound, sys, os
 import numpy as np
-#sys.path.append(os.path.abspath('../core'))
-#import faux_gestures as fg
-# temporary hack to run locallyy before I can install cosund on docker
-x = np.linspace(-.7, .7, 30)
-line = np.c_[x,x]
-theta = np.linspace(0, 2*np.pi, 70)
-y = np.sin(theta)
-sine = np.c_[ np.linspace(-1, 1, 70), y ]
-gestures = [line, sine]
 
-# settings
-instrument = 'submono' #'sine' or submono'
-num_sensors = 1
-num_parms = 10
+class Synth:
+    def __init__(self, duration, synthesis_parms):
+        self.duration = duration
+        self.synthesis_parms = synthesis_parms # numpy array with size 10 for the instr submono
+        # settings
+        instrument = 'submono' #'sine' or submono'
 
-# test gestures
-gesture_duration = 1 #just set to smth for now
-#gestures = [fg.trajectories[2], fg.trajectories[4]]
-gesture_names = ['line', 'sine']
-gesture = gestures[0]
-gesture_name = gesture_names[0]
+        #set up csound
+        self.cs = ctcsound.Csound()
+        self.cs.setOption('-otest.wav')
+        orcfile = open('shape.orc', 'r')
+        orc = orcfile.read()
+        self.cs.compileOrc(orc)
+        self.cs.readScore("f0 .1")
+        self.cs.start()
+        instruments = ['sine', 'submono']
+        synthinstr = instruments.index(instrument) + 20
+        self.cs.inputMessage('''i{} 0 {}'''.format(synthinstr, duration))#run synth
+        self.cs.inputMessage('''i{} 0 {}'''.format(30, duration))#run analyzer
 
-# modify csound orc according to number of sensor inputs etc
-newparms = '''; auto rewrite from Python
-ginum_parms = {}
-ginum_sensors = {}
-; auto rewrite end'''.format(num_parms,num_sensors)
+        self.parmtable = int(self.cs.controlChannel("parmvalue_table")[0])
+        self.analysistable = int(self.cs.controlChannel("analysis_table")[0])
+        self.analysis_parms = self.cs.table(self.analysistable) # read analysis parameters from here
 
-orcname = 'shape.orc'
-f = open(orcname, 'r+')
-text = f.read()
-text = re.sub(r"(?s); auto rewrite from Python.*; auto rewrite end", newparms, text)
-f.seek(0)
-f.write(text)
-f.truncate()
-f.close()
-    
-#set up csound
-cs = ctcsound.Csound()
-cs.setOption('-o'+gesture_name+'.wav')
-orcfile = open(orcname, 'r')
-orc = orcfile.read()
-cs.compileOrc(orc)
-cs.start()
-control_rate = cs.kr() # get from Csound
-num_frames = int(control_rate*gesture_duration)
-instruments = ['sine', 'submono', 'vst']
-synthinstr = instruments.index(instrument) + 20
-print(instrument)
-print(synthinstr)
-cs.inputMessage('''i{} 0 {}'''.format(synthinstr, gesture_duration))#run synth
-gesture_index = 0
-parmtable = int(cs.controlChannel("parmvalue_table")[0])
-print(parmtable,len(gesture),len(gesture)/float(num_frames))
-while (gesture_index < len(gesture)):
-  data = gesture[int(gesture_index)]
-  amp = 1
-  value = (data[1]+1)*0.5 #normalize
-  #print(value)
-  cs.tableSet(parmtable, 0, amp)
-  cs.tableSet(parmtable, 1, value)  
-  cs.performKsmps() #synthesize one audio frame
-  gesture_index += len(gesture)/float(num_frames)
-cs.cleanup()
-del cs
+    def run_synth(self):
+        while True:
+          self.cs.tableCopyIn(self.parmtable, self.synthesis_parms)
+          result = self.cs.performKsmps()
+          self.cs.tableCopyOut(self.analysistable, self.analysis_parms)
+          if result != 0:
+            break
+        print('synthesis parms:', self.synthesis_parms)
+        print('analysis parms:', self.analysis_parms)
+        self.cs.cleanup()
+        del self.cs
+
+if __name__ == '__main__':
+    test_parms = np.array([0.5,.2,0,0.9,0,0.1,0.1,0.7,0.2,0.2])
+    print(test_parms)
+    s = Synth(3, test_parms)
+    s.run_synth()

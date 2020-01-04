@@ -1,12 +1,12 @@
-;    Copyright 2016 Oeyvind Brandtsegg 
+;    Copyright 2018 Oeyvind Brandtsegg and Axel Tidemann
 ;
-;    This file is part of the Feature-Extract-Modulator package
+;    This file is part of the Shape package
 ;
-;    The Feature-Extract-Modulator is free software: you can redistribute it and/or modify
+;    The Shape package is free software: you can redistribute it and/or modify
 ;    it under the terms of the GNU General Public License version 3 
 ;    as published by the Free Software Foundation.
 ;
-;    The Feature-Extract-Modulator is distributed in the hope that it will be useful,
+;    The shape is distributed in the hope that it will be useful,
 ;    but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;    GNU General Public License for more details.
@@ -32,7 +32,7 @@
 	krms_preEq	rms a1preEq			    	; simple level measure (with transient pre emphasis)
 	krms_preEq      = krms_preEq*2
 	krms		rms a1			    		; simple level measure 
-	krms            = krms*2
+	;krms            = krms*1.4
         krms_dB         = dbfsamp(krms)
                 
 	kAttack		= 0.001				        ; envelope follower attack
@@ -133,232 +133,6 @@ rireturn
         ;kenv_dyn        limit log10(divz(kenv_dyn_max, kenv_dyn_min, -1))/3, 0, 1
         kenv_dyn        = 1-limit(divz(dbfsamp(kenv_dyn_max)-5, dbfsamp(kenv_dyn_min)-5, -1), 0, 1)
 
-; ***************
-; rhythmic analysis
-
-; one measure of rhythhmic irrregularity is the relative time ratios between conescutive transients
-; we measure here the ratio between the currnet and the previous, the current and the next last, and the current and the third last deltatimes
-; we multiply these three measures, as it will give a higher regularity measure if there is some short term repetition
-
-; another measure of irregularity is the distance from a 1:1 ratio (regular beat), where large changes in tempo give high irregularity
-
-ibufsize_ry = 8
-kcnt_ry init 0
-kArr_ry[] init ibufsize_ry
-
-if krms_tran0 > 0 then
-kArr_ry[kcnt_ry] = ktime
-k_0 = kArr_ry[kcnt_ry]
-k_1 = kArr_ry[wrap(kcnt_ry-1,0,ibufsize_ry)]
-k_2 = kArr_ry[wrap(kcnt_ry-2,0,ibufsize_ry)]
-k_3 = kArr_ry[wrap(kcnt_ry-3,0,ibufsize_ry)]
-k_4 = kArr_ry[wrap(kcnt_ry-4,0,ibufsize_ry)]
-kdist1 = (k_0 - k_1)
-kdist2 = (k_1 - k_2)
-kdist3 = (k_2 - k_3)
-kdist4 = (k_3 - k_4)
-krel1 divz kdist1, kdist2, 1
-krel2 divz kdist1, kdist3, 1
-krel3 divz kdist1, kdist4, 1
-
-; ***
-knom1, kden1, kdev1, kfrom_one1 RhythmRatio krel1
-knom2, kden2, kdev2, kfrom_one2 RhythmRatio krel2
-knom3, kden3, kdev3, kfrom_one3 RhythmRatio krel3
-
-krhythm_consonance_deviation tonek limit((kdev1+kdev2+kdev3)/3, 0, 1), kr/8
-
-;Benedetti height
-kben1 = (knom1*kden1)
-kben2 = (knom2*kden2)
-kben3 = (knom3*kden3)
-
-;Tenney height is log2(Benedetti height)
-kten1 = (log(kben1)/3)+0.2
-kten2 = (log(kben2)/3)+0.2
-kten3 = (log(kben3)/3)+0.2
-
-; multiply the last three tenney heights
-; it will allow for low values when there is some short term repetition (low values at this stage means high consonance)
-krhythm_cons_x = (kten1*kten2*kten3)
-; low pass filter and invert
-krhythm_consonance tonek limit(krhythm_cons_x, 0, 1), kr/8 
-krhythm_consonance = 1-krhythm_consonance
-
-
-; the "distance from one" measure (irregularity)
-; multiply the two highest out of the last three
-kfrom_one limit max(kfrom_one1,kfrom_one2)*max(kfrom_one2,kfrom_one3), 0, 1
-; low pass filter and log
-krhythm_irregularity tonek log10((kfrom_one*9/10)+0.1)+1, kr/8 
-
-krhythm_ratio1 = knom1/kden1
-krhythm_ratio2 = knom2/kden2
-krhythm_ratio3 = knom3/kden3
-
-kcnt_ry wrap (kcnt_ry+1), 0, ibufsize_ry
-endif
-
-
-;*************************************
-; ** rhythm autocorrelation
-
-; sinoid trigger envelope, allows (soft) rhythmic deviation from strict pattern
-ishapedur = 0.1
-;ktest metro 1
-;if ktest == 1 then
-if krms_tran0 == 1 then
-reinit triggershape
-endif
-triggershape:
-kra_env linseg 0, ishapedur*0.5, 1, ishapedur*0.5, 0, 1, 0
-;kra_env = kra_env * krms * kgate
-rireturn
-
-; autocorrelation, done in layers of different fftsize to reduce latency
-irhythm_sr = 24.8
-ira_fftsize = 256
-ira_overlaps = 4
-kRhythmAuto[], krnewframe, knumtransients, kra_flux RhythmAutoCorr kra_env, krms_tran0, irhythm_sr, ira_fftsize, ira_overlaps
-kRhythmAuto2[], krnewframe2, knumtransients2, kra_flux2 RhythmAutoCorr kra_env, krms_tran0, irhythm_sr, ira_fftsize/2, ira_overlaps
-kRhythmAuto4[], krnewframe4, knumtransients4, kra_flux4 RhythmAutoCorr kra_env, krms_tran0, irhythm_sr, ira_fftsize/4, ira_overlaps
-
-kcombocount init 0
-kcombocount = (krnewframe > 0 ? 0 : kcombocount)
-kcombocount += krnewframe4
-knewcombo changed kcombocount
-if krnewframe > 0 then
-kRhythmAutoCombo[] = kRhythmAuto
-endif
-if knewcombo > 0 then
-if ((kcombocount == 1) || (kcombocount == 2)) then 
-kRA1[] slicearray kRhythmAuto, 0, ira_fftsize/4
-kRA2[] = (kRhythmAuto2*0.333)+(kRA1*0.667)
-kcombotransients = (knumtransients/2)+(((knumtransients2/2)*0.333)+((knumtransients/2)*0.667))
-kRhythmAutoCombo slicearray kRA2, 0, (ira_fftsize/4)
-endif
-if ((kcombocount == 3) || (kcombocount == 4)) then 
-kRA1[] slicearray kRhythmAuto, 0, ira_fftsize/4
-kRA2[] = (kRhythmAuto2*0.667)+(kRA1*0.333)
-kcombotransients = (knumtransients/2)+(((knumtransients2/2)*0.667)+((knumtransients/2)*0.333))
-kRhythmAutoCombo slicearray kRA2, 0, (ira_fftsize/4)
-endif
-if ((kcombocount == 1) || (kcombocount == 3)) then 
-kRA3[] slicearray kRA2, 0, ira_fftsize/8
-kRA4[] = (kRhythmAuto4*0.333)+(kRA3*0.667)
-kcombotransients = (kcombotransients*0.833)+((knumtransients4/2)*0.333)
-kRhythmAutoCombo slicearray kRA4, 0, (ira_fftsize/8)
-endif
-if ((kcombocount == 2) || (kcombocount == 4)) then 
-kRA3[] slicearray kRA2, 0, ira_fftsize/8
-kRA4[] = (kRhythmAuto4*0.667)+(kRA3*0.333)
-kcombotransients = (kcombotransients*0.666)+((knumtransients4/2)*0.667)
-kRhythmAutoCombo slicearray kRA4, 0, (ira_fftsize/8)
-endif
-
-kndxfluxcombo = 1
-kcorrcomboSum = 0
-kprevcomboSum = 0
-kthiscomboSum = 0
-while kndxfluxcombo < ira_fftsize-1 do
-kRhythmAutoComboPrev[] init ira_fftsize        
- kcombomax max kRhythmAutoCombo[kndxfluxcombo], kRhythmAutoCombo[kndxfluxcombo-1], kRhythmAutoCombo[kndxfluxcombo+1]
- kcomboPrevmax max kRhythmAutoComboPrev[kndxfluxcombo], kRhythmAutoComboPrev[kndxfluxcombo-1], kRhythmAutoComboPrev[kndxfluxcombo+1]
- kcorrcomboSum = kcorrcomboSum + (kcomboPrevmax*kcombomax)
- kprevcomboSum	= kprevcomboSum + (kcomboPrevmax^2)
- kthiscomboSum	= kthiscomboSum + (kcombomax^2)
- kndxfluxcombo += 1
-od
-
-kRhythmAutoComboPrev = kRhythmAutoCombo
-kfluxcombo_1 divz kcorrcomboSum, (sqrt(kprevcomboSum)*sqrt(kthiscomboSum)), 1
-kra_fluxcombo = limit((1-kfluxcombo_1)*((ira_overlaps+1)/2), 0, 1)
-
-endif
-
-kra_flux = (kra_flux2+kra_fluxcombo)/2 ; use the stepwise updated combo, but combine it with the relatively stable middle layer (middle sized window)
-
-; removed, test
-;kra_fluxsum = (kra_flux+kra_flux2+kra_flux4)/3 ; test, not used
-
-
-
-krhythm_ac_rms = sqrt(sumarray(kRhythmAuto*kRhythmAuto)/ira_fftsize)
-krhythm_ac_max = maxarray(kRhythmAuto)
-krhythm_ac_crest1 = limit((krhythm_ac_rms/(log2(knumtransients+1)+1))*20, 0, 1) ; some empirical adjustment here... (!)
-
-krhythm_ac_rms2 = sqrt(sumarray(kRhythmAuto2*kRhythmAuto2)/ira_fftsize)
-krhythm_ac_max2 = maxarray(kRhythmAuto2)
-krhythm_ac_crest2 = limit((krhythm_ac_rms2/(log2(knumtransients2+1)+1))*20, 0, 1) ; some empirical adjustment here... (!)
-
-krhythm_ac_rms4 = sqrt(sumarray(kRhythmAuto4*kRhythmAuto4)/ira_fftsize)
-krhythm_ac_max4 = maxarray(kRhythmAuto4)
-krhythm_ac_crest4 = limit((krhythm_ac_rms4/(log2(knumtransients4+1)+1))*20, 0, 1) ; some empirical adjustment here... (!)
-
-krhythm_ac_crest = (krhythm_ac_crest1+krhythm_ac_crest2+krhythm_ac_crest4)/3
-
-
-
-; ***************
-; rhythm IOT histogram analysis
-
-iot_size = 4
-kiotArr[] init iot_size
-kiot_index init 0
-if krms_tran0 == 1 then
-;kiotArr[kiot_index] = kdist1 ; kdist comes from previous rhythm analysis (ratios, above)
-kiotArr[kiot_index] = knom1 ; nominator comes from previous rhythmic ratio analysis (ratios, above)
-kiot_index = (kiot_index+1)%iot_size
-inumbins = 64
-imax = 8
-itabsize = 8192
-iftabsA[] makehistables itabsize, inumbins
-kHist[] init inumbins
-kindex = 0
-while kindex < lenarray(kiotArr) do
-  khistindex = 0
-  while khistindex < inumbins do
-    kHist[khistindex] = kHist[khistindex]+tablekt(kiotArr[kindex]/imax, iftabsA[khistindex], 1)
-    khistindex += 1
-  od
-kindex += 1
-od
-endif
-
-kiot_fade metro 4
-if kiot_fade > 0 then
-kHist = kHist*0.95
-endif
-
-;************
-iot_size2 = 4
-kiotArr2[] init iot_size2
-kiot_index2 init 0
-if krms_tran0 == 1 then
-kiotArr2[kiot_index2] = kden1 ; denominator comes from previous rhythmic ratio analysis (ratios, above)
-kiot_index2 = (kiot_index2+1)%iot_size2
-inumbins2 = 64
-imax2 = 8
-itabsize2 = 8192
-iftabsA2[] makehistables itabsize2, inumbins2
-kHist2[] init inumbins2
-kindex2 = 0
-while kindex2 < lenarray(kiotArr2) do
-  khistindex2 = 0
-  while khistindex2 < inumbins2 do
-    kHist2[khistindex2] = kHist2[khistindex2]+tablekt(kiotArr2[kindex2]/imax2, iftabsA2[khistindex2], 1)
-    khistindex2 += 1
-  od
-kindex2 += 1
-od
-endif
-
-kiot_fade2 metro 4
-if kiot_fade2 > 0 then
-kHist2 = kHist2*0.95
-endif
-;************
-;printf "%i %i \n", krms_tran0, knom1, kden1
 
 ; ***************
 ; spectral analysis
@@ -374,11 +148,11 @@ endif
 
 	; copy pvs data from table to array
 	; analyze spectral features
-	kArrA[]  		init    giFftTabSize
-	kArrAprev[]  		init    giFftTabSize
-	kArrAnorm[]  		init    giFftTabSize
-	kArrF[]  		init    giFftTabSize
-	kArrCorr[]  		init    giFftTabSize
+	kArrA[]  		init    gifft_tabsize
+	kArrAprev[]  		init    gifft_tabsize
+	kArrAnorm[]  		init    gifft_tabsize
+	kArrF[]  		init    gifft_tabsize
+	kArrCorr[]  		init    gifft_tabsize
 	kflatness		init 0
 
 if (kdoflag > 0) && (kflag > 0) then
@@ -395,7 +169,7 @@ if (kdoflag > 0) && (kflag > 0) then
 	kspread		        = sumarray(((kArrF+(kcentroid*-1))^2)*kArrAnorm)^0.5
 	kskewness	        divz sumarray(((kArrF+(kcentroid*-1))^3)*kArrAnorm), kspread^3, 1
 	kurtosis	        divz sumarray(((kArrF+(kcentroid*-1))^4)*kArrAnorm), kspread^4, 1	
-        kcrest			divz kmaxAmp, ksumAmp/giFftTabSize, 1  
+        kcrest			divz kmaxAmp, ksumAmp/gifft_tabsize, 1  
         kArrAlog[]              = kArrA
         kArrAlog[0]             = 1
         kArrAlog[1]             = 0
@@ -404,7 +178,7 @@ if (kdoflag > 0) && (kflag > 0) then
         klogmin,klogndx minarray kArrAlog
         kArrAlog[klogndx] = 1
         od
-      	kflatness		divz exp(sumarray(log(kArrAlog))/giFftTabSize),  (ksumAmp/giFftTabSize), 0
+      	kflatness		divz exp(sumarray(log(kArrAlog))/gifft_tabsize),  (ksumAmp/gifft_tabsize), 0
 	kflux                   = 1-(divz(sumarray(kArrCorr),(sqrt(sumarray(kArrA^2))*sqrt(sumarray(kArrAprev^2))),0))
 	kdoflag 		= 0
 
@@ -539,6 +313,7 @@ endif
         krms            limit krms, 0, 1
         krms_dB_n       limit krms_dB_n, 0, 1
         krms_preEq      limit krms_preEq, 0, 1
+	kenv_crest1	limit kenv_crest1, 0, 1
         kpitch_n        limit kpitch_n, 0, 1
         kcentroid_n     limit kcentroid_n, 0, 1
         kspread_n       limit kspread_n, 0, 1
@@ -547,8 +322,21 @@ endif
         kflatness_n     limit kflatness_n, 0, 1
         kcrest_n        limit kcrest_n, 0, 1
         kflux_n         limit kflux_n, 0, 1
+
         ;kmfcc1          limit kmfcc1, 0, 1
         ;kmfcc2          limit kmfcc2, 0, 1
         ;kmfcc3          limit kmfcc3, 0, 1
         ;kmfcc4          limit kmfcc4, 0, 1
         ;kmfcc5          limit kmfcc5, 0, 1
+	kmfccdiff	limit kmfccdiff, 0, 1 
+
+; export analysis to Python
+tablew krms, 0, gianalysis
+tablew kenv_crest1, 1, gianalysis
+tablew kpitch_n, 2, gianalysis
+tablew kcentroid_n, 3, gianalysis
+tablew kflatness_n, 4, gianalysis
+tablew kcrest_n, 5, gianalysis
+tablew kflux_n, 6, gianalysis
+tablew kmfccdiff, 7, gianalysis
+

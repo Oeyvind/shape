@@ -9,7 +9,7 @@ kamp read_and_map 0
 kcps read_and_map 1
 
 ; synthesis
-a1 oscili 1, kcps, giSine
+a1 oscili 1, kcps, gisine
 
 amp = interp(kamp)
 a1 = a1*amp
