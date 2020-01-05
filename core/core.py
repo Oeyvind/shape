@@ -32,22 +32,20 @@ import zmq
 import numpy as np
 from tensorflow.keras.models import load_model
 
-from models import GestureClassifier
+from models import GestureClassifier, Mapper
 import communicator as cm
 
 GESTURE = 'gesture'
-MAPPING = 'mapping'
+MAP = 'mapping'
 
 LEARN_READY = 'learn_ready'
 PREDICT_READY = 'predict_ready'
 
 def learn(output_dim):
-    print('Learning process started')
-
     comm = cm.Communicator([cm.LEARN_PULL, cm.MODEL_PUSH, cm.READY_REQ])
 
     gesture_model = None
-    mapping_model = None
+    map_model = None
 
     comm.ready_req.send_pyobj(LEARN_READY)
     comm.ready_req.recv_pyobj()
@@ -79,20 +77,28 @@ def learn(output_dim):
 
         # A mapping to be learned, i.e. the novelty is a list of x,y pairs.
         else:
-            if mapping_model is None:
-                print('Mapping model created')
-                mapping_model = 1
-                x,y = novelty
-            else:
-                print('Training new mapping model')
+
+            x,y = novelty
+            input_dim = len(x) 
             
+            if map_model is None:
+                print('Map model created')
+                
+                map_model = Mapper(input_dim, output_dim)
+                map_model.add_datapoint(novelty)
+            else:
+                map_model.add_datapoint(novelty)
+                map_model.train()
+
+                map_file = '{}_mapper.h5'.format(input_dim)
+                map_model.model.save(map_file)
+
+                comm.model_push.send_pyobj([ MAP, map_file ])
             
     print('Learning process exit')
 
     
 def predict(output_dim):
-    print('Prediction process started')
-
     comm = cm.Communicator([cm.MODEL_PULL, cm.PREDICT_REP, cm.READY_REQ])
 
     comm.ready_req.send_pyobj(PREDICT_READY)
@@ -102,6 +108,7 @@ def predict(output_dim):
     mapping_model = None
 
     for socket, msg in next(comm):
+        
         if socket == cm.MODEL_PULL:
             if msg[0] == GESTURE:
                 _, model_file, embedding_file = msg
@@ -111,19 +118,25 @@ def predict(output_dim):
                 gesture_model = lambda x: [ new_model.predict(x), new_embedding.predict(x) ]
                 print('New gesture model loaded:', gesture_model)
                 
-            if msg[0] == MAPPING:
-                print('New mapping model loaded')
+            if msg[0] == MAP:
+                
+                map_file = msg[1]
+
+                new_map = load_model(map_file)
+                map_model = lambda x: new_map.predict(x)
+                
+                print('New mapping model loaded:', map_model)
 
         if socket == cm.PREDICT_REP:
             signal = msg
-            input_dim = signal.shape[1]
 
             try:
+                # The embedding will also include synth sound analysis.
                 prediction, embedding = gesture_model(signal[np.newaxis,:])
-                mapping = np.random.random(output_dim)
+                mapping = map_model(embedding)
                 comm.predict_rep.send_pyobj([ prediction, embedding, mapping, signal ])
-            except:
-                warnings.warn('Models not trained yet')
+            except Exception as e:
+                warnings.warn('Models are not trained yet')
                 comm.predict_rep.send_pyobj([ False, False, False, False ])
                 
     print('Prediction process exit')

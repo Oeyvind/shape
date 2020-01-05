@@ -47,6 +47,7 @@ class CoreTest(unittest.TestCase):
         cls.processes.append(mp.Process(target=core.predict, args=(cls.output_dim,)))
 
         cls.test_trajectories = [ circle, spiral ]
+        cls.test_mappings = [ [np.random.rand(128), np.random.rand(cls.output_dim)] for _ in range(2) ]
 
         for p in cls.processes:
             p.start()
@@ -54,6 +55,7 @@ class CoreTest(unittest.TestCase):
         # Wait for the processes to be ready.
         waiting = [ core.LEARN_READY, core.PREDICT_READY ]
         for _, ready_process in next(cls.comm):
+            print(ready_process)
             waiting.remove(ready_process)
             cls.comm.ready_rep.send_pyobj(None) # Dummy reply
 
@@ -65,10 +67,13 @@ class CoreTest(unittest.TestCase):
         for signal in self.test_trajectories:
             self.comm.learn_push.send_pyobj(signal)
 
+        for x_y in self.test_mappings:
+            self.comm.learn_push.send_pyobj(x_y)
+
             
     def test_predict(self):
-        # Testing for what happens when the predict-endpoint has no model whilst waiting
-        # for the model to train.
+        # This will launch as the models are being trained. Almost guaranteed that the models will
+        # not finish training before this happens.
         prediction = False
         while not prediction:
             self.comm.predict_req.send_pyobj(circle)
@@ -86,11 +91,12 @@ class CoreTest(unittest.TestCase):
         # Model sees new gesture, must learn new mapping. For the time being, this is specified.
         # Long-term: auto-discover this.
         self.comm.predict_req.send_pyobj(sine)
-        prediction, _, mapping, signal = self.comm.predict_req.recv_pyobj()
+        prediction, embedding, mapping, signal = self.comm.predict_req.recv_pyobj()
         # Unhappy with prediction, requires another mapping. Attempted by adding noise.
         mapping *= np.random.random(mapping.shape)
         # This was satisfactory, added to the training datapoints of the mapping neural model.
-        self.comm.learn_push.send_pyobj([signal, mapping])
+        # Not really sent, because training is already tested.
+        # self.comm.learn_push.send_pyobj([np.squeeze(embedding), np.squeeze(mapping)])
             
     @classmethod
     def tearDownClass(cls):
