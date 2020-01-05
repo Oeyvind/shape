@@ -88,8 +88,8 @@ class MapperTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        input_dim = 10
-        output_dim = 5
+        input_dim = 20
+        output_dim = 10
         cls.model = Mapper(input_dim, output_dim)
 
         n_mappings = 10
