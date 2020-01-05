@@ -27,6 +27,9 @@ Run Csound synthesizer
 import ctcsound, sys, os
 import numpy as np
 
+# To train one gesture, instantiate the synth and synthesize suio frames with step_synth(), 
+# updating synthesis parameters and retrieveing analysis values for each step
+
 class Synth:
     def __init__(self, duration, synthesis_parms):
         self.duration = duration
@@ -49,17 +52,39 @@ class Synth:
 
         self.parmtable = int(self.cs.controlChannel("parmvalue_table")[0])
         self.analysistable = int(self.cs.controlChannel("analysis_table")[0])
-        self.analysis_parms = self.cs.table(self.analysistable) # read analysis parameters from here
+        self.analysis_values = self.cs.table(self.analysistable) # read analysis parameters from here
+
+    def set_synthesis_parms(self, synthesis_parms):
+        self.synthesis_parms = synthesis_parms
+        
+    def get_analysis_values(self):
+        return self.analysis_values
 
     def run_synth(self):
+        # for testing: run synth with the specified duration and the specified parameters
         while True:
           self.cs.tableCopyIn(self.parmtable, self.synthesis_parms)
           result = self.cs.performKsmps()
-          self.cs.tableCopyOut(self.analysistable, self.analysis_parms)
+          self.cs.tableCopyOut(self.analysistable, self.analysis_values)
           if result != 0:
             break
         print('synthesis parms:', self.synthesis_parms)
-        print('analysis parms:', self.analysis_parms)
+        print('analysis parms:', self.analysis_values)
+        self.cs.cleanup()
+        del self.cs
+
+    def step_synth(self):
+        # Use this method for training,
+        # you can set the synthesis parameters in self.synthesis_parms
+        # then call this method (step_synth()) to synthesize one frame of audio
+        # the retrieve the analysis frame from self.analysis_parms
+        # When this method return something else than zero, the synthesis process is finished and you should call cleanup()
+        self.cs.tableCopyIn(self.parmtable, self.synthesis_parms)
+        errcode = self.cs.performKsmps()
+        self.cs.tableCopyOut(self.analysistable, self.analysis_values)
+        return errcode
+        
+    def cleanup(self):
         self.cs.cleanup()
         del self.cs
 
@@ -67,4 +92,10 @@ if __name__ == '__main__':
     test_parms = np.array([0.5,.2,0,0.9,0,0.1,0.1,0.7,0.2,0.2])
     print(test_parms)
     s = Synth(3, test_parms)
-    s.run_synth()
+    #s.run_synth()
+    errcode = 0
+    while errcode == 0:
+      errcode = s.step_synth()
+    print('synthesis parms:', s.synthesis_parms)
+    print('analysis parms:', s.analysis_values)
+    s.cleanup()
