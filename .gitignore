@@ -5,3 +5,4 @@ test.wav
 *.dll
 *.vst
 *.h5
+*.py~

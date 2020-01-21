@@ -39,8 +39,8 @@ class Synth:
 
         #set up csound
         self.cs = ctcsound.Csound()
-        self.cs.setOption('-otest.wav')
-        orcfile = open('shape.orc', 'r')
+        self.cs.setOption('-o/shape/synth/test.wav')
+        orcfile = open('/shape/synth/shape.orc', 'r')
         orc = orcfile.read()
         self.cs.compileOrc(orc)
         self.cs.readScore("f0 .1")

@@ -20,6 +20,10 @@
 
 """
 Unittest class for models.
+
+To run it, be in the root folder and type
+
+python -m core.models_test
 """
 
 import unittest
@@ -28,8 +32,34 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from models import GestureClassifier, Mapper, MASK_VALUE
-from faux_gestures import trajectories
+from core.models import GestureMapper, GestureClassifier, Mapper, MASK_VALUE
+from core.faux_gestures import trajectories
+
+class GestureMapperTest(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        input_dim = 2
+        n_classes = 10
+        synth_parameters_dim = 10
+        audio_features_dim = 12
+        cls.model = GestureMapper(input_dim, n_classes, synth_parameters_dim, audio_features_dim)
+        
+        for x in trajectories:
+            cls.model.add_datapoint(x, np.random.rand(synth_parameters_dim), np.random.rand(audio_features_dim))
+
+    def test_add_datapoint(self):
+        self.assertWarns(UserWarning, self.model.add_datapoint, np.random.random(5), None, None)
+
+
+    def test_train_predict(self):
+        self.model.train()
+
+        gesture_predictions, _, _ = self.model.predict(self.model._pad(trajectories))
+        self.assertTrue(all(np.argmax(gesture_predictions, axis=1) == range(len(trajectories))))
+
+
+                                    
 
 class GestureClassifierTest(unittest.TestCase):
 
@@ -72,9 +102,9 @@ class GestureClassifierTest(unittest.TestCase):
             plt.legend()
             plt.gca().set_aspect('equal')
             plt.tight_layout()
-            plt.savefig('../plots/canonical_shape_{}.png'.format(i), dpi=300)
+            plt.savefig('./plots/canonical_shape_{}.png'.format(i), dpi=300)
 
-        print('VISUAL INSPECTION NEEDED: check ../plots/canonical_shape*png')
+        print('VISUAL INSPECTION NEEDED: check ./plots/canonical_shape*png')
 
 
     def test_train_predict(self):
@@ -89,13 +119,16 @@ class MapperTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         input_dim = 20
-        output_dim = 10
-        cls.model = Mapper(input_dim, output_dim)
+        synth_parameters_output_dim = 10
+        audio_features_output_dim = 10
+        cls.model = Mapper(input_dim, synth_parameters_output_dim, audio_features_output_dim)
 
         n_mappings = 10
         
         for _ in range(n_mappings):
-            cls.model.add_datapoint([ np.random.rand(input_dim), np.random.rand(output_dim) ])
+            x = np.random.rand(input_dim)
+            y = [ np.random.rand(synth_parameters_output_dim), np.random.rand(audio_features_output_dim) ]
+            cls.model.add_datapoint([x, y])
         
 
     def test_train_predict(self):
