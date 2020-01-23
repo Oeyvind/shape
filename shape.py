@@ -79,8 +79,6 @@ def run(n_classes=10, synth_prms_dim=10, audio_ftrs_dim=8, duration=3, noise_std
                 comm.SYNTH_REQ_SEND(y_synth_prms)
                 y_audio_ftrs = comm.SYNTH_REQ_RECV()
 
-
-
                 if socket == cm.PLAY_PULL:
                     happy = True
 
