@@ -31,7 +31,7 @@ LEARNING_MODE_READY = 'Learning mode process ready'
 PREFERENCES_READY = 'Preferences process ready'
 
 def gesture():
-    comm = cm.Communicator([ cm.READY_REQ, cm.GESTURE_PUSH ])
+    comm = cm.Communicator([ cm.READY_REQ ])
     
     comm.READY_REQ_SEND(GESTURE_READY)
     comm.READY_REQ_RECV()
@@ -39,7 +39,7 @@ def gesture():
     print('Gesture process exit')
 
 def learning_mode():
-    comm = cm.Communicator([ cm.READY_REQ, cm.LEARNING_MODE_PUSH ])
+    comm = cm.Communicator([ cm.READY_REQ ])
     
     comm.READY_REQ_SEND(LEARNING_MODE_READY)
     comm.READY_REQ_RECV()
@@ -47,7 +47,7 @@ def learning_mode():
     print('Learning mode process exit')
 
 def preferences():
-    comm = cm.Communicator([ cm.READY_REQ, cm.PREFERENCES_REP ])
+    comm = cm.Communicator([ cm.READY_REQ ]) # should have the PREFERENCES_REP socket also.
     
     comm.READY_REQ_SEND(PREFERENCES_READY)
     comm.READY_REQ_RECV()

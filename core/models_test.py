@@ -32,7 +32,7 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from core.models import GestureMapper, GestureClassifier, Mapper, MASK_VALUE
+from core.models import GestureMapper#, GestureClassifier, Mapper, MASK_VALUE
 from core.faux_gestures import trajectories
 
 class GestureMapperTest(unittest.TestCase):
@@ -59,80 +59,110 @@ class GestureMapperTest(unittest.TestCase):
         self.assertTrue(all(np.argmax(gesture_predictions, axis=1) == range(len(trajectories))))
 
 
+    # def test_data_augmentation(self):
+    #     noised = self.model._data_augmentation()
+
+    #     for i, (original, corruptions) in enumerate(zip(self.model.data,
+    #                                                     np.split(noised, len(self.model.data)))):
+    #         plt.clf()
+
+    #         for signal in corruptions:
+
+    #             x, y = signal.T
+
+    #             x = x[ x != MASK_VALUE ]
+    #             y = y[ y != MASK_VALUE ]
+                
+    #             plt.plot(x, y, alpha=.1)
+
+    #         x, y = original.T
+    #         plt.plot(x, y, linewidth=3, label='original')
+
+    #         plt.xlim(-1.1, 1.1)
+    #         plt.ylim(-1.1, 1.1)
+
+    #         plt.legend()
+    #         plt.gca().set_aspect('equal')
+    #         plt.tight_layout()
+    #         plt.savefig('./plots/canonical_shape_{}.png'.format(i), dpi=300)
+
+    #     print('VISUAL INSPECTION NEEDED: check ./plots/canonical_shape*png')
+
+        
                                     
 
-class GestureClassifierTest(unittest.TestCase):
+# class GestureClassifierTest(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        input_dim = 2
-        output_dim = 10
-        cls.model = GestureClassifier(input_dim, output_dim)
+#     @classmethod
+#     def setUpClass(cls):
+#         input_dim = 2
+#         output_dim = 10
+#         cls.model = GestureClassifier(input_dim, output_dim)
         
-        for signal in trajectories:
-            cls.model.add_datapoint(signal)
+#         for signal in trajectories:
+#             cls.model.add_datapoint(signal)
         
     
-    def test_add_datapoint(self):
-        self.assertWarns(UserWarning, self.model.add_datapoint, np.random.random(5))
+#     def test_add_datapoint(self):
+#         self.assertWarns(UserWarning, self.model.add_datapoint, np.random.random(5))
 
         
-    def test_data_augmentation(self):
-        noised = self.model._data_augmentation()
+#     def test_data_augmentation(self):
+#         noised = self.model._data_augmentation()
 
-        for i, (original, corruptions) in enumerate(zip(self.model.data,
-                                                        np.split(noised, len(self.model.data)))):
-            plt.clf()
+#         for i, (original, corruptions) in enumerate(zip(self.model.data,
+#                                                         np.split(noised, len(self.model.data)))):
+#             plt.clf()
 
-            for signal in corruptions:
+#             for signal in corruptions:
 
-                x, y = signal.T
+#                 x, y = signal.T
 
-                x = x[ x != MASK_VALUE ]
-                y = y[ y != MASK_VALUE ]
+#                 x = x[ x != MASK_VALUE ]
+#                 y = y[ y != MASK_VALUE ]
                 
-                plt.plot(x, y, alpha=.1)
+#                 plt.plot(x, y, alpha=.1)
 
-            x, y = original.T
-            plt.plot(x, y, linewidth=3, label='original')
+#             x, y = original.T
+#             plt.plot(x, y, linewidth=3, label='original')
 
-            plt.xlim(-1.1, 1.1)
-            plt.ylim(-1.1, 1.1)
+#             plt.xlim(-1.1, 1.1)
+#             plt.ylim(-1.1, 1.1)
 
-            plt.legend()
-            plt.gca().set_aspect('equal')
-            plt.tight_layout()
-            plt.savefig('./plots/canonical_shape_{}.png'.format(i), dpi=300)
+#             plt.legend()
+#             plt.gca().set_aspect('equal')
+#             plt.tight_layout()
+#             plt.savefig('./plots/canonical_shape_{}.png'.format(i), dpi=300)
 
-        print('VISUAL INSPECTION NEEDED: check ./plots/canonical_shape*png')
-
-
-    def test_train_predict(self):
-        self.model.train()
-
-        predictions, embeddings = self.model.predict(self.model._pad(trajectories))
-        self.assertTrue(all(np.argmax(predictions, axis=1) == range(len(trajectories))))
+#         print('VISUAL INSPECTION NEEDED: check ./plots/canonical_shape*png')
 
 
-class MapperTest(unittest.TestCase):
+#     def test_train_predict(self):
+#         self.model.train()
 
-    @classmethod
-    def setUpClass(cls):
-        input_dim = 20
-        synth_parameters_output_dim = 10
-        audio_features_output_dim = 10
-        cls.model = Mapper(input_dim, synth_parameters_output_dim, audio_features_output_dim)
+#         predictions, embeddings = self.model.predict(self.model._pad(trajectories))
+#         self.assertTrue(all(np.argmax(predictions, axis=1) == range(len(trajectories))))
 
-        n_mappings = 10
+
+# class MapperTest(unittest.TestCase):
+
+#     @classmethod
+#     def setUpClass(cls):
+#         input_dim = 20
+#         synth_parameters_output_dim = 10
+#         audio_features_output_dim = 10
+#         cls.model = Mapper(input_dim, synth_parameters_output_dim, audio_features_output_dim)
+
+#         n_mappings = 10
         
-        for _ in range(n_mappings):
-            x = np.random.rand(input_dim)
-            y = [ np.random.rand(synth_parameters_output_dim), np.random.rand(audio_features_output_dim) ]
-            cls.model.add_datapoint([x, y])
+#         for _ in range(n_mappings):
+#             x = np.random.rand(input_dim)
+#             y = [ np.random.rand(synth_parameters_output_dim), np.random.rand(audio_features_output_dim) ]
+#             cls.model.add_datapoint([x, y])
         
 
-    def test_train_predict(self):
-        self.model.train()
+#     def test_train_predict(self):
+#         self.model.train()
 
         
 if __name__ == '__main__':

@@ -23,63 +23,87 @@ shape:main
 """
 
 import multiprocessing as mp
+import time
+
+import numpy as np
+from tensorflow.keras.models import load_model
 
 from core import core
 import data.communicator as cm
 import data.inputs as ins
 import synth.interface
 
-if __name__ == "__main__":
+def run(n_classes=10, synth_prms_dim=10, audio_ftrs_dim=8, duration=3, noise_std=.1):
 
-    
-    
-    comm = cm.Communicator([ cm.READY_REP, cm.DEATH_PUB, cm.GESTURE_PULL, cm.LEARNING_MODE_PULL,
-                             cm.LEARN_PUSH, cm.PREFERENCES_REQ, cm.PREDICT_REQ, cm.SYNTH_REQ ])
-                             
-    output_dim = 10 # These should be input variables, or set during the system interface
-    duration = 3
-    
+    comm = cm.Communicator([ cm.READY_REP, cm.TRAIN_PUSH, cm.PREFERENCES_REQ, cm.SYNTH_REQ,
+                             cm.PLAY_PULL, cm.LEARN_PULL, cm.MODEL_PULL ])
+
     processes = []
-    processes.append(mp.Process(target=core.learn, args=(output_dim,)))
-    processes.append(mp.Process(target=core.predict))
-    processes.append(mp.Process(target=ins.gesture))
-    processes.append(mp.Process(target=ins.learning_mode))
-    processes.append(mp.Process(target=ins.preferences))
+    processes.append(mp.Process(target=core.train, args=(n_classes, synth_prms_dim, audio_ftrs_dim,)))
     processes.append(mp.Process(target=synth.interface.listen, args=(duration,)))
+    
+    # These processes will be the building blocks for the play/learn push sockets.
+    # processes.append(mp.Process(target=ins.gesture))
+    # processes.append(mp.Process(target=ins.learning_mode))
+    # processes.append(mp.Process(target=ins.preferences))
 
     for p in processes:
         p.start()
 
-    cm.Waiter(comm, [ core.LEARN_READY, core.PREDICT_READY, ins.GESTURE_READY, ins.LEARNING_MODE_READY,
-                      ins.PREFERENCES_READY, synth.interface.SYNTH_READY ])
-
-    learning_mode = False
-
+    model = None
+    
     for socket, msg in next(comm):
 
-        if socket == cm.LEARNING_MODE_PULL:
-            learning_mode = msg
-            print('Learning mode:', learning_mode)
+        if socket == cm.MODEL_PULL:
+            print('Loading', msg)
+            t0 = time.time()
+            model = load_model(msg)
+            print('Model loaded in', np.around(time.time()-t0, decimals=2), 'seconds')
 
-        if socket == cm.GESTURE_PULL:
-            gesture = msg
+        else:
+            print('Mapping gesture to synth parameters')
 
-            if learning_mode:
-                print('Learning new gesture')
-                comm.LEARN_PUSH_SEND(gesture)
-                print('Creating new mapping for gesture')
-                comm.PREDICT_REQ_SEND(gesture)
-                gesture_prediction, gesture_embedding, synth_prms, audio_ftrs, signal = comm.PREDICT_REQ_RECV()
+            x_gesture = msg
 
-                
+            if model is None:
+                y_synth_prms = np.random.rand(synth_prms_dim)
             else:
-                print('Predicting based on gesture')
-                comm.PREDICT_REQ_SEND(gesture)
-                gesture_prediction, gesture_embedding, synth_prms, audio_ftrs, signal = comm.PREDICT_REQ_RECV()
-        
-    
-    comm.kill()
+                _, y_synth_prms, _ = model.predict(x_gesture[np.newaxis,:])
+                y_synth_prms = np.squeeze(y_synth_prms)
 
+            happy = False
+            while not happy:
+                y_synth_prms = np.clip(y_synth_prms, 0, 1)
+
+                print('Creating audio')
+                comm.SYNTH_REQ_SEND(y_synth_prms)
+                y_audio_ftrs = comm.SYNTH_REQ_RECV()
+
+
+
+                if socket == cm.PLAY_PULL:
+                    happy = True
+
+                if socket == cm.LEARN_PULL:
+
+                    print('Asking user')
+                    comm.PREFERENCES_REQ_SEND('Happy with the sound?')
+                    happy = comm.PREFERENCES_REQ_RECV()
+
+                    print('User happy?', happy)
+
+                    # Add noise to the synth parameters
+                    y_synth_prms += np.random.normal(0, noise_std, size=y_synth_prms.shape)
+
+            if socket == cm.LEARN_PULL:
+                comm.TRAIN_PUSH_SEND([ x_gesture, y_synth_prms, y_audio_ftrs ])
+
+    
     for p in processes:
         p.join()
+
+    print('Shape exit')
     
+
+if __name__ == "__main__":
+    run()

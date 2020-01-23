@@ -22,6 +22,8 @@
 shape:synth ØMQ wrapper
 """
 
+import numpy as np #remove
+
 import data.communicator as cm
 from synth.synth import Synth
 
@@ -29,13 +31,13 @@ SYNTH_READY = 'Synth interface process ready'
 
 def listen(duration):
 
-    comm = cm.Communicator([ cm.SYNTH_REP, cm.READY_REQ ])
+    comm = cm.Communicator([ cm.SYNTH_REP ])#, cm.READY_REQ ])
 
-    comm.READY_REQ_SEND(SYNTH_READY)
-    comm.READY_REQ_RECV()
+    # comm.READY_REQ_SEND(SYNTH_READY)
+    # comm.READY_REQ_RECV()
 
     for _, parameters in next(comm):
-
+        
         # For now: load a new synth each time, until the Synth bugs are worked out.
         my_synth = Synth(duration, parameters)
         

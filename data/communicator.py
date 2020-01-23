@@ -35,13 +35,14 @@ push_pull = ['PUSH', 'PULL']
 # All that is needed is to define name, port and socket type, and the module
 # will dynamically create function handles and do all the necessary registering.
 ports = {
-    'PREDICT': (7000, req_rep),
-    'LEARN': (7001, req_rep),
-    'PREFERENCES': (7002, req_rep),
-    'MODEL': (7003, push_pull),
-    'READY': (7004, req_rep),
-    'GESTURE': (7005, push_pull),
-    'LEARNING_MODE': (7006, push_pull),
+    'LEARN': (7000, push_pull),
+    'PLAY': (7001, push_pull),
+    'TRAIN': (7002, push_pull),
+    'PREFERENCES': (7003, req_rep),
+    'MODEL': (7004, push_pull),
+    'READY': (7005, req_rep),
+    # 'GESTURE': (7005, push_pull),
+    # 'LEARNING_MODE': (7006, push_pull),
     'SYNTH': (7007, req_rep),
     'DEATH': (6666, pub_sub) }
 
