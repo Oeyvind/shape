@@ -20,6 +20,10 @@
 
 """
 Unittest class for models.
+
+To run it, be in the root folder and type
+
+python -m core.models_test
 """
 
 import unittest
@@ -28,78 +32,61 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from models import GestureClassifier, Mapper, MASK_VALUE
-from faux_gestures import trajectories
+from core.models import GestureMapper#, GestureClassifier, Mapper, MASK_VALUE
+from core.faux_gestures import trajectories
 
-class GestureClassifierTest(unittest.TestCase):
-
+class GestureMapperTest(unittest.TestCase):
+    
     @classmethod
     def setUpClass(cls):
         input_dim = 2
-        output_dim = 10
-        cls.model = GestureClassifier(input_dim, output_dim)
+        n_classes = 10
+        synth_parameters_dim = 10
+        audio_features_dim = 12
+        cls.model = GestureMapper(input_dim, n_classes, synth_parameters_dim, audio_features_dim)
         
-        for signal in trajectories:
-            cls.model.add_datapoint(signal)
-        
-    
+        for x in trajectories:
+            cls.model.add_datapoint(x, np.random.rand(synth_parameters_dim), np.random.rand(audio_features_dim))
+
     def test_add_datapoint(self):
-        self.assertWarns(UserWarning, self.model.add_datapoint, np.random.random(5))
+        self.assertWarns(UserWarning, self.model.add_datapoint, np.random.random(5), None, None)
 
-        
-    def test_data_augmentation(self):
-        noised = self.model._data_augmentation()
 
-        for i, (original, corruptions) in enumerate(zip(self.model.data,
-                                                        np.split(noised, len(self.model.data)))):
-            plt.clf()
+    def test_train_predict(self):
+        self.model.train()
 
-            for signal in corruptions:
+        gesture_predictions, _, _ = self.model.predict(self.model._pad(trajectories))
+        self.assertTrue(all(np.argmax(gesture_predictions, axis=1) == range(len(trajectories))))
 
-                x, y = signal.T
 
-                x = x[ x != MASK_VALUE ]
-                y = y[ y != MASK_VALUE ]
+    # def test_data_augmentation(self):
+    #     noised = self.model._data_augmentation()
+
+    #     for i, (original, corruptions) in enumerate(zip(self.model.data,
+    #                                                     np.split(noised, len(self.model.data)))):
+    #         plt.clf()
+
+    #         for signal in corruptions:
+
+    #             x, y = signal.T
+
+    #             x = x[ x != MASK_VALUE ]
+    #             y = y[ y != MASK_VALUE ]
                 
-                plt.plot(x, y, alpha=.1)
+    #             plt.plot(x, y, alpha=.1)
 
-            x, y = original.T
-            plt.plot(x, y, linewidth=3, label='original')
+    #         x, y = original.T
+    #         plt.plot(x, y, linewidth=3, label='original')
 
-            plt.xlim(-1.1, 1.1)
-            plt.ylim(-1.1, 1.1)
+    #         plt.xlim(-1.1, 1.1)
+    #         plt.ylim(-1.1, 1.1)
 
-            plt.legend()
-            plt.gca().set_aspect('equal')
-            plt.tight_layout()
-            plt.savefig('../plots/canonical_shape_{}.png'.format(i), dpi=300)
+    #         plt.legend()
+    #         plt.gca().set_aspect('equal')
+    #         plt.tight_layout()
+    #         plt.savefig('./plots/canonical_shape_{}.png'.format(i), dpi=300)
 
-        print('VISUAL INSPECTION NEEDED: check ../plots/canonical_shape*png')
-
-
-    def test_train_predict(self):
-        self.model.train()
-
-        predictions, embeddings = self.model.predict(self.model._pad(trajectories))
-        self.assertTrue(all(np.argmax(predictions, axis=1) == range(len(trajectories))))
-
-
-class MapperTest(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        input_dim = 10
-        output_dim = 5
-        cls.model = Mapper(input_dim, output_dim)
-
-        n_mappings = 10
-        
-        for _ in range(n_mappings):
-            cls.model.add_datapoint([ np.random.rand(input_dim), np.random.rand(output_dim) ])
-        
-
-    def test_train_predict(self):
-        self.model.train()
+    #     print('VISUAL INSPECTION NEEDED: check ./plots/canonical_shape*png')
 
         
 if __name__ == '__main__':

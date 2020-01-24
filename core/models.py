@@ -33,11 +33,11 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences as pad
 
 MASK_VALUE = -100
 
-class GestureClassifier:
+class GestureMapper:
 
-    def __init__(self, input_dim, output_dim, n_filters=20, filter_widths=range(1,7),
-                 dropout=.5, hidden_size=128, noise_std=.1, epochs=10, n_augments=100,
-                 validation_split=.2):
+    def __init__(self, input_dim, n_classes, synth_parameters_dim, audio_features_dim,
+                 n_filters=20, filter_widths=range(1,7), dropout=.5, hidden_size=128, n_hidden_layers=2,
+                 noise_std=.1, epochs=10, n_augments=100, validation_split=.2):
 
         inputs = layers.Input(shape=(None, input_dim))
 
@@ -49,15 +49,28 @@ class GestureClassifier:
             x = layers.GlobalMaxPool1D()(x)
             filters.append(x)
 
-        merge = layers.Concatenate()(filters)
-        dropout = layers.Dropout(dropout)(merge)
-        embedding = layers.Dense(hidden_size, activation='elu', name='embedding')(dropout)
-        outputs = layers.Dense(output_dim, activation='softmax')(embedding)
+        x = layers.Concatenate()(filters)
+        
+        for _ in range(n_hidden_layers):
+            x = layers.Dropout(dropout)(x)
+            x = layers.Dense(hidden_size, activation='elu')(x)
 
+        gesture = layers.Dense(n_classes, activation='softmax', name='gesture')(x)
+        synth_prms = layers.Dense(synth_parameters_dim, name='synth_prms')(x)
+        audio_ftrs = layers.Dense(audio_features_dim, name='audio_ftrs')(x)
+
+        outputs = [ gesture, synth_prms, audio_ftrs ]
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-        self.embedding = tf.keras.Model(inputs=inputs, outputs=embedding)
+        
+        losses = { 'gesture': 'sparse_categorical_crossentropy',
+                   'synth_prms': tf.keras.losses.Huber(),
+                   'audio_ftrs': tf.keras.losses.Huber() }
+        
+        metrics = { 'gesture': 'accuracy',
+                    'synth_prms': 'mse',
+                    'audio_ftrs': 'mse' }
+                    
+        self.model.compile(loss=losses, optimizer='adam', metrics=metrics)
 
         self.data = []
         self.noise_std = noise_std
@@ -66,15 +79,15 @@ class GestureClassifier:
         self.validation_split = validation_split
 
         
-    def add_datapoint(self, x):
+    def add_datapoint(self, x_gesture, y_synth_prms, y_audio_ftrs):
         # Data: timesteps x channels.
-        if len(x.shape) == 1:
-            x = x.reshape(-1,1)
+        if len(x_gesture.shape) == 1:
+            x_gesture = x_gesture.reshape(-1,1)
 
-        if len(x) < 10:
-            warnings.warn('Datapoints must have a length of at least 10')
+        if len(x_gesture) < 10:
+            warnings.warn('Datapoints must have a length of at least 10, discarding.')
         else:
-            self.data.append(x)
+            self.data.append(( x_gesture, y_synth_prms, y_audio_ftrs ))
 
 
     def _pad(self, X):
@@ -86,89 +99,37 @@ class GestureClassifier:
         
             
     def _data_augmentation(self):
-        padded = self._pad(self.data)
+
+        x_gesture, y_synth_prms, y_audio_ftrs = zip(*self.data)
+
+        y_gesture = np.arange(len(x_gesture))
+        y_gesture = np.repeat(y_gesture, self.n_augments, axis=0)
+
+        y_synth_prms = np.repeat(y_synth_prms, self.n_augments, axis=0)
         
-        repeated = np.repeat(padded, self.n_augments, axis=0)
-        mask = np.where(repeated == MASK_VALUE)
+        y_audio_ftrs = np.repeat(y_audio_ftrs, self.n_augments, axis=0)
+                
+        x_padded = self._pad(x_gesture)
+        
+        x_repeated = np.repeat(x_padded, self.n_augments, axis=0)
+        mask = np.where(x_repeated == MASK_VALUE)
 
-        noised = repeated + np.random.normal(0, self.noise_std, size=repeated.shape)
-        noised[mask] = MASK_VALUE
+        x_noised = x_repeated + np.random.normal(0, self.noise_std, size=x_repeated.shape)
+        x_noised[mask] = MASK_VALUE
 
-        return noised
-
-    
-    def training_data(self):
-        x = self._data_augmentation()
-        y = np.repeat(range(len(self.data)), self.n_augments)
-
-        return shuffle(x, y)
+        return shuffle(x_noised, y_gesture, y_synth_prms, y_audio_ftrs)
 
     
     def train(self):
-        x, y = self.training_data()
-        self.model.fit(x, y, epochs=self.epochs, validation_split=self.validation_split)
+        x_gesture, y_gesture, y_synth_prms, y_audio_ftrs = self._data_augmentation()
 
-        
-    def predict(self, x):
-        return self.model.predict(x), self.embedding.predict(x)
+        x = x_gesture
+        y = { 'gesture': y_gesture,
+              'synth_prms': y_synth_prms,
+              'audio_ftrs': y_audio_ftrs }
 
-class Mapper:
-
-    # Noise std is lower here, because it is assumed these kinds of mappings will be 
-    # closer in the high-dimensional feature space
-    def __init__(self, input_dim, output_dim, n_hidden_layers=2,
-                 hidden_size=128, noise_std=.01, epochs=10, n_augments=100,
-                 validation_split=.2):
-
-        inputs = layers.Input(shape=(input_dim,))
-
-        x = inputs
-
-        for _ in range(n_hidden_layers):
-            x = layers.Dense(hidden_size, activation='elu')(x)
-
-        outputs = layers.Dense(output_dim)(x)
-
-        self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        self.model.compile(loss=tf.keras.losses.Huber(), optimizer='adam')
-
-        self.data = []
-        self.noise_std = noise_std
-        self.epochs = epochs
-        self.n_augments = n_augments
-        self.validation_split = validation_split
-
-        
-    def add_datapoint(self, x_y):
-        self.data.append(x_y)
-
-        
-    def _data_augmentation(self):
-        x, _ = zip(*self.data)
-
-        x = np.stack(x)
-
-        repeated = np.repeat(x, self.n_augments, axis=0)
-
-        noised = repeated + np.random.normal(0, self.noise_std, size=repeated.shape)
-
-        return noised
-    
-    
-    def training_data(self):
-        x = self._data_augmentation()
-        _, y = zip(*self.data)
-
-        y = np.stack(y)
-        y = np.repeat(y, self.n_augments, axis=0)
-
-        return shuffle(x,y)
-
-    
-    def train(self):
-        x, y = self.training_data()
-        self.model.fit(x, y, epochs=self.epochs, validation_split=self.validation_split)
-
+        self.model.fit(x, y, epochs=self.epochs, validation_split=self.validation_split, verbose=True)
         
     def predict(self, x):
         return self.model.predict(x)
+

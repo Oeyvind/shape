@@ -24,106 +24,53 @@ shape:core
 Receives gestural inputs, audio analysis inputs, as well as user happiness. 
 """
 
-import multiprocessing as mp
-import pickle
 import warnings
+import uuid
 
 import zmq
 import numpy as np
 from tensorflow.keras.models import load_model
 
-from models import GestureClassifier
-import communicator as cm
+from core.models import GestureMapper
+import data.communicator as cm
 
-GESTURE = 'gesture'
-MAPPING = 'mapping'
 
-LEARN_READY = 'learn_ready'
-PREDICT_READY = 'predict_ready'
+TRAIN_READY = 'Train process ready'
 
-def learn(output_dim):
-    print('Learning process started')
 
-    comm = cm.Communicator([cm.LEARN_PULL, cm.MODEL_PUSH, cm.READY_REQ])
+def train(n_classes, synth_parameters_dim, audio_features_dim):
+    comm = cm.Communicator([cm.TRAIN_PULL, cm.MODEL_PUSH])
 
-    gesture_model = None
-    mapping_model = None
+    # comm.READY_REQ_SEND(TRAIN_READY)
+    # comm.READY_REQ_RECV()
 
-    comm.ready_req.send_pyobj(LEARN_READY)
-    comm.ready_req.recv_pyobj()
+    model = None
 
-    for _, novelty in next(comm):
+    for socket, novelty in next(comm):
 
-        # A gesture to be learned
-        if type(novelty) is np.ndarray:
+        x_gesture, y_synth_prms, y_audio_ftrs = novelty
 
-            input_dim = novelty.shape[1]
-            
-            if gesture_model is None:
-                print('Gesture classifier created')
-                gesture_model = GestureClassifier(input_dim, output_dim)
-                gesture_model.add_datapoint(novelty)
-            else:
-                gesture_model.add_datapoint(novelty)
-                gesture_model.train()
+        input_dim = x_gesture.shape[1]
 
-                # Threading bug somewhere in python, cannot pickle keras models. Once pickling is possible,
-                # send the entire object.
-                model_file = '{}_model.h5'.format(input_dim)
-                gesture_model.model.save(model_file)
+        if model is None:
 
-                embedding_file = '{}_embeddings.h5'.format(input_dim)
-                gesture_model.embedding.save(embedding_file)
+            print('Gesture mapper created')
+            model = GestureMapper(input_dim, n_classes, synth_parameters_dim, audio_features_dim)
+            model.add_datapoint(x_gesture, y_synth_prms, y_audio_ftrs)
 
-                comm.model_push.send_pyobj([ GESTURE, model_file, embedding_file ])
-
-        # A mapping to be learned, i.e. the novelty is a list of x,y pairs.
         else:
-            if mapping_model is None:
-                print('Mapping model created')
-                mapping_model = 1
-                x,y = novelty
-            else:
-                print('Training new mapping model')
-            
-            
-    print('Learning process exit')
+            model.add_datapoint(x_gesture, y_synth_prms, y_audio_ftrs)
+            model.train()
 
-    
-def predict(output_dim):
-    print('Prediction process started')
+            # Threading bug somewhere in python, cannot pickle keras models. Once pickling is possible,
+            # send the entire object. This is messy, because it can't be written by being loaded.
+            model_file = '/shape/trained_models/{}_gesture_mapper_{}.h5'.format(input_dim, uuid.uuid4())
+            model.model.save(model_file)
 
-    comm = cm.Communicator([cm.MODEL_PULL, cm.PREDICT_REP, cm.READY_REQ])
+            print('Training done, sending model')
+            comm.MODEL_PUSH_SEND(model_file)
 
-    comm.ready_req.send_pyobj(PREDICT_READY)
-    comm.ready_req.recv_pyobj()
-    
-    gesture_model = None
-    mapping_model = None
 
-    for socket, msg in next(comm):
-        if socket == cm.MODEL_PULL:
-            if msg[0] == GESTURE:
-                _, model_file, embedding_file = msg
-                new_model = load_model(model_file)
-                new_embedding = load_model(embedding_file)
 
-                gesture_model = lambda x: [ new_model.predict(x), new_embedding.predict(x) ]
-                print('New gesture model loaded:', gesture_model)
-                
-            if msg[0] == MAPPING:
-                print('New mapping model loaded')
+    print('Training process exit')
 
-        if socket == cm.PREDICT_REP:
-            signal = msg
-            input_dim = signal.shape[1]
-
-            try:
-                prediction, embedding = gesture_model(signal[np.newaxis,:])
-                mapping = np.random.random(output_dim)
-                comm.predict_rep.send_pyobj([ prediction, embedding, mapping, signal ])
-            except:
-                warnings.warn('Models not trained yet')
-                comm.predict_rep.send_pyobj([ False, False, False, False ])
-                
-    print('Prediction process exit')

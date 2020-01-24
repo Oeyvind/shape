@@ -5,3 +5,5 @@ test.wav
 *.sfk
 *.dll
 *.vst
+*.h5
+*.py~

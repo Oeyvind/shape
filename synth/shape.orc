@@ -12,7 +12,7 @@ gifnf     	ftgen 2, 0, gifft_tabsize, 2, 0   	; for pvs analysis
 gianalysis	ftgen 0, 0, 8, 2, 0			; for writing analysis results
 chnset gianalysis, "analysis_table"
 
-#include "analyze_udos.inc"
+#include "/shape/synth/analyze_udos.inc"
 
 ginum_parms = 10
 ; generic parameter ranges and mapping, overwritten on selection of active instrument
@@ -42,11 +42,11 @@ endop
 
 ; synthesize sound
 instr 20
-#include "sine.inc"
+#include "/shape/synth/sine.inc"
 endin
 
 instr 21
-#include "submono.inc"
+#include "/shape/synth/submono.inc"
 endin
 
 instr 22
@@ -58,6 +58,6 @@ instr 30
 a1 chnget "a1"
 a2 chnget "a2"
 a1 = a1+a2*0.5
-#include "analysis_parms.inc"
-#include "analyze_audio.inc"
+#include "/shape/synth/analysis_parms.inc"
+#include "/shape/synth/analyze_audio.inc"
 endin

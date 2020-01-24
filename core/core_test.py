@@ -20,6 +20,10 @@
 
 """
 Unittest class for shape:core
+
+To run it, be in the root folder and type
+
+python -m core.core_test
 """
 
 import unittest
@@ -28,69 +32,55 @@ import time
 
 import numpy as np
 import zmq
+from tensorflow.keras.models import load_model
+from sklearn.metrics import mean_squared_error as mse
 
-import core
-import communicator as cm
-from faux_gestures import circle, spiral, sine
+from core import core
+from core import faux_gestures as fg
+import data.communicator as cm
 
-class CoreTest(unittest.TestCase):
-
+class CoreTrainTest(unittest.TestCase):
+    
     @classmethod
     def setUpClass(cls):
 
-        cls.comm = cm.Communicator([cm.LEARN_PUSH, cm.PREDICT_REQ, cm.DEATH_PUB, cm.READY_REP])
+        cls.comm = cm.Communicator([cm.TRAIN_PUSH, cm.MODEL_PULL, cm.DEATH_PUB, cm.READY_REP])
         
         cls.processes = []
-        cls.output_dim = 10
+        cls.n_classes = 5
+        cls.synth_parameters_dim = 7
+        cls.audio_features_dim = 10
 
-        cls.processes.append(mp.Process(target=core.learn, args=(cls.output_dim,)))
-        cls.processes.append(mp.Process(target=core.predict, args=(cls.output_dim,)))
+        cls.processes.append(mp.Process(target=core.train, args=(cls.n_classes, cls.synth_parameters_dim,
+                                                                 cls.audio_features_dim,)))
 
-        cls.test_trajectories = [ circle, spiral ]
+        cls.test_gestures = [ (fg.circle,
+                               np.random.rand(cls.synth_parameters_dim),
+                               np.random.rand(cls.audio_features_dim)),
+                               (fg.spiral,
+                                np.random.rand(cls.synth_parameters_dim),
+                                np.random.rand(cls.audio_features_dim)) ]
 
         for p in cls.processes:
             p.start()
 
-        # Wait for the processes to be ready.
-        waiting = [ core.LEARN_READY, core.PREDICT_READY ]
-        for _, ready_process in next(cls.comm):
-            waiting.remove(ready_process)
-            cls.comm.ready_rep.send_pyobj(None) # Dummy reply
-
-            if len(waiting) == 0:
-                break
+        # waiting = [ core.TRAIN_READY ]
+        # cm.Waiter(cls.comm, waiting)
 
 
-    def test_learn(self):
-        for signal in self.test_trajectories:
-            self.comm.learn_push.send_pyobj(signal)
-
+    def test_train_and_predict(self):
+        for novelty in self.test_gestures:
+            self.comm.TRAIN_PUSH_SEND(novelty)
             
-    def test_predict(self):
-        # Testing for what happens when the predict-endpoint has no model whilst waiting
-        # for the model to train.
-        prediction = False
-        while not prediction:
-            self.comm.predict_req.send_pyobj(circle)
-            prediction, embedding, mapping, signal = self.comm.predict_req.recv_pyobj()
-            prediction = type(prediction) is np.ndarray
-            time.sleep(1)
+        model_file = self.comm.MODEL_PULL_RECV()
+        model = load_model(model_file)
 
-        # Test that the model has learned these two trajectories, as well as the predict
-        # function in itself.
-        for i, signal in enumerate(self.test_trajectories):
-            self.comm.predict_req.send_pyobj(signal)
-            prediction, _, _, _ = self.comm.predict_req.recv_pyobj()
-            self.assertEqual(np.argmax(prediction, axis=1), i)
+        for i, (x_gesture, target_synth_prms, target_audio_ftrs) in enumerate(self.test_gestures):
+            y_gesture, y_synth_prms, y_audio_ftrs = model.predict(x_gesture[np.newaxis,:])
+            self.assertEqual(np.argmax(y_gesture, axis=1), i)
+            print('Synth parameters MSE:', mse(target_synth_prms, np.squeeze(y_synth_prms)))
+            print('Audio features MSE:', mse(target_audio_ftrs, np.squeeze(y_audio_ftrs)))
 
-        # Model sees new gesture, must learn new mapping. For the time being, this is specified.
-        # Long-term: auto-discover this.
-        self.comm.predict_req.send_pyobj(sine)
-        prediction, _, mapping, signal = self.comm.predict_req.recv_pyobj()
-        # Unhappy with prediction, requires another mapping. Attempted by adding noise.
-        mapping *= np.random.random(mapping.shape)
-        # This was satisfactory, added to the training datapoints of the mapping neural model.
-        self.comm.learn_push.send_pyobj([signal, mapping])
             
     @classmethod
     def tearDownClass(cls):
@@ -98,6 +88,7 @@ class CoreTest(unittest.TestCase):
         
         for p in cls.processes:
             p.join()
+
 
 if __name__ == '__main__':
     unittest.main()
