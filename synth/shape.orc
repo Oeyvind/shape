@@ -19,7 +19,7 @@ ginum_parms = 10
 gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "
 gkParm_min[] fillarray 0,0,0,0,0,0,0,0,0,0
 gkParm_max[] fillarray 1,1,1,1,1,1,1,1,1,1
-gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin" 
+gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
 giParm_values ftgen 0, 0, ginum_parms, -2, 0
 chnset giParm_values, "parmvalue_table"
 
@@ -49,6 +49,10 @@ instr 21
 #include "submono.inc"
 endin
 
+instr 22
+#include "additive.inc"
+endin
+
 ; analyze sound
 instr 30
 a1 chnget "a1"
@@ -57,4 +61,3 @@ a1 = a1+a2*0.5
 #include "analysis_parms.inc"
 #include "analyze_audio.inc"
 endin
-
