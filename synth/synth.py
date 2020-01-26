@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
-# 
+#
 #    Copyright 2018 Oeyvind Brandtsegg and Axel Tidemann
 #
 #    This file is part of the Shape package
 #
 #    The Shape package is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License version 3 
+#    it under the terms of the GNU General Public License version 3
 #    as published by the Free Software Foundation.
 #
 #    The Shape is distributed in the hope that it will be useful,
@@ -15,10 +15,10 @@
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with The Shape package.  
+#    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
-""" 
+"""
 Synth
 
 Run Csound synthesizer
@@ -27,7 +27,7 @@ Run Csound synthesizer
 import ctcsound, sys, os
 import numpy as np
 
-# To train one gesture, instantiate the synth and synthesize suio frames with step_synth(), 
+# To train one gesture, instantiate the synth and synthesize audio frames with step_synth(),
 # updating synthesis parameters and retrieveing analysis values for each step
 
 class Synth:
@@ -35,7 +35,7 @@ class Synth:
         self.duration = duration
         self.synthesis_parms = synthesis_parms # numpy array with size 10 for the instr submono
         # settings
-        instrument = 'submono' #'sine' or submono'
+        instrument = 'submono' #'sine', 'submono', 'additive'
 
         #set up csound
         self.cs = ctcsound.Csound()
@@ -45,8 +45,9 @@ class Synth:
         self.cs.compileOrc(orc)
         self.cs.readScore("f0 .1")
         self.cs.start()
-        instruments = ['sine', 'submono']
+        instruments = ['sine', 'submono', 'additive']
         synthinstr = instruments.index(instrument) + 20
+
         self.cs.inputMessage('''i{} 0 {}'''.format(synthinstr, duration))#run synth
         self.cs.inputMessage('''i{} 0 {}'''.format(30, duration))#run analyzer
 
@@ -56,7 +57,7 @@ class Synth:
 
     def set_synthesis_parms(self, synthesis_parms):
         self.synthesis_parms = synthesis_parms
-        
+
     def get_analysis_values(self):
         return self.analysis_values
 
@@ -83,13 +84,14 @@ class Synth:
         errcode = self.cs.performKsmps()
         self.cs.tableCopyOut(self.analysistable, self.analysis_values)
         return errcode
-        
+
     def cleanup(self):
         self.cs.cleanup()
         del self.cs
 
 if __name__ == '__main__':
-    test_parms = np.array([0.5,.2,0,0.9,0,0.1,0.1,0.7,0.2,0.2])
+    #test_parms = np.array([0.5,.2,0,0.9,0,0.1,0.1,0.7,0.2,0.2])
+    test_parms = np.array([0.5,.2,1,0,0,0,0,0,0,0,0,0,0,0])
     print(test_parms)
     s = Synth(3, test_parms)
     #s.run_synth()

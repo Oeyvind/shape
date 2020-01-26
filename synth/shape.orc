@@ -14,12 +14,12 @@ chnset gianalysis, "analysis_table"
 
 #include "/shape/synth/analyze_udos.inc"
 
-ginum_parms = 10
+ginum_parms = 14
 ; generic parameter ranges and mapping, overwritten on selection of active instrument
-gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "
-gkParm_min[] fillarray 0,0,0,0,0,0,0,0,0,0
-gkParm_max[] fillarray 1,1,1,1,1,1,1,1,1,1
-gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
+gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "," "," "," "," "
+gkParm_min[] fillarray 0,0,0,0,0,0,0,0,0,0,0,0,0,0
+gkParm_max[] fillarray 1,1,1,1,1,1,1,1,1,1,1,1,1,1
+gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
 giParm_values ftgen 0, 0, ginum_parms, -2, 0
 chnset giParm_values, "parmvalue_table"
 
@@ -50,7 +50,7 @@ instr 21
 endin
 
 instr 22
-#include "additive.inc"
+#include "/shape/synth/additive.inc"
 endin
 
 ; analyze sound

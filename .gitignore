@@ -1,6 +1,6 @@
 *.pyc
 test.wav
-*.repeaks
+*.reapeaks
 *.png
 *.sfk
 *.dll

@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
-# 
+#
 #    Copyright 2019 Oeyvind Brandtsegg and Axel Tidemann
 #
 #    This file is part of the Shape package
 #
 #    The Shape package is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License version 3 
+#    it under the terms of the GNU General Public License version 3
 #    as published by the Free Software Foundation.
 #
 #    The Shape is distributed in the hope that it will be useful,
@@ -15,7 +15,7 @@
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with The Shape package.  
+#    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
 """
@@ -41,7 +41,7 @@ def run(n_classes=10, synth_prms_dim=10, audio_ftrs_dim=8, duration=3, noise_std
     processes = []
     processes.append(mp.Process(target=core.train, args=(n_classes, synth_prms_dim, audio_ftrs_dim,)))
     processes.append(mp.Process(target=synth.interface.listen, args=(duration,)))
-    
+
     # These processes will be the building blocks for the play/learn push sockets.
     # processes.append(mp.Process(target=ins.gesture))
     # processes.append(mp.Process(target=ins.learning_mode))
@@ -51,7 +51,7 @@ def run(n_classes=10, synth_prms_dim=10, audio_ftrs_dim=8, duration=3, noise_std
         p.start()
 
     model = None
-    
+
     for socket, msg in next(comm):
 
         if socket == cm.MODEL_PULL:
@@ -96,12 +96,12 @@ def run(n_classes=10, synth_prms_dim=10, audio_ftrs_dim=8, duration=3, noise_std
             if socket == cm.LEARN_PULL:
                 comm.TRAIN_PUSH_SEND([ x_gesture, y_synth_prms, y_audio_ftrs ])
 
-    
+
     for p in processes:
         p.join()
 
     print('Shape exit')
-    
+
 
 if __name__ == "__main__":
     run()
