@@ -4,7 +4,8 @@ ksmps = 64
 nchnls = 2
 0dbfs = 1
 
-gisine ftgen 0, 0, 65536, 10, 1
+#include "/shape/synth/ftables.inc"
+
 gifftsize 	= 1024
 gifft_tabsize	= (gifftsize / 2)+1
 gifna     	ftgen 1, 0, gifft_tabsize, 2, 0   	; for pvs analysis
@@ -14,12 +15,12 @@ chnset gianalysis, "analysis_table"
 
 #include "/shape/synth/analyze_udos.inc"
 
-ginum_parms = 14
+ginum_parms = 32
 ; generic parameter ranges and mapping, overwritten on selection of active instrument
-gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "," "," "," "," "
-gkParm_min[] fillarray 0,0,0,0,0,0,0,0,0,0,0,0,0,0
-gkParm_max[] fillarray 1,1,1,1,1,1,1,1,1,1,1,1,1,1
-gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
+gSParmnames[] fillarray "amp","cps"," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "," "
+gkParm_min[] fillarray 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+gkParm_max[] fillarray 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+gSParm_map[] fillarray "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin","lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin","lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin","lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
 giParm_values ftgen 0, 0, ginum_parms, -2, 0
 chnset giParm_values, "parmvalue_table"
 
@@ -51,6 +52,10 @@ endin
 
 instr 22
 #include "/shape/synth/additive.inc"
+endin
+
+instr 23
+#include "/shape/synth/partikkelsynth.inc"
 endin
 
 ; analyze sound

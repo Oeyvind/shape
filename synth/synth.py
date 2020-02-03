@@ -35,7 +35,7 @@ class Synth:
         self.duration = duration
         self.synthesis_parms = synthesis_parms # numpy array with size 10 for the instr submono
         # settings
-        instrument = 'submono' #'sine', 'submono', 'additive'
+        instrument = 'submono' #'sine', 'submono', 'additive', 'partikkel'
 
         #set up csound
         self.cs = ctcsound.Csound()
@@ -45,7 +45,7 @@ class Synth:
         self.cs.compileOrc(orc)
         self.cs.readScore("f0 .1")
         self.cs.start()
-        instruments = ['sine', 'submono', 'additive']
+        instruments = ['sine', 'submono', 'additive', 'partikkel']
         synthinstr = instruments.index(instrument) + 20
 
         self.cs.inputMessage('''i{} 0 {}'''.format(synthinstr, duration))#run synth
@@ -92,6 +92,7 @@ class Synth:
 if __name__ == '__main__':
     #test_parms = np.array([0.5,.2,0,0.9,0,0.1,0.1,0.7,0.2,0.2])
     test_parms = np.array([0.5,.2,1,0,0,0,0,0,0,0,0,0,0,0])
+    test_parms = np.random.rand(25)
     print(test_parms)
     s = Synth(3, test_parms)
     #s.run_synth()
