@@ -1,7 +1,7 @@
 ; parameter ranges, mapping
 gSParmnames[] fillarray "amp","cps","amp1","amp2","amp3","amp4","amp5","amp6","amp7","amp8","amp9","amp10","amp11","amp12"
 gkParm_min[] fillarray 0, 50, 0,0,0,0,0,0,0,0,0,0,0,0
-gkParm_max[] fillarray 1, 5000, 1,1,1,1,1,1,1,1,1,1,1,1
+gkParm_max[] fillarray 1, 1500, 1,1,1,1,1,1,1,1,1,1,1,1
 gSParm_map[] fillarray "lin", "log", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
 
 ; default values for unmapped parms
@@ -37,6 +37,7 @@ kamp10 read_and_map 11
 kamp11 read_and_map 12
 kamp12 read_and_map 13
 
+;printks "*** Synth parms *** : %f %f %f %f %f %f %f %f %f %f %f %f", 1, kamp, kcps, kamp1, kamp2, kamp3, kamp4, kamp5, kamp6, kamp7, kamp8, kamp9, kamp10, kamp11, kamp12
 
 ; synthesis
 a1 poscil kamp1, kcps

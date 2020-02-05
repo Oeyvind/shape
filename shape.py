@@ -33,7 +33,7 @@ import data.communicator as cm
 import data.inputs as ins
 import synth.interface
 
-def run(n_classes=10, synth_prms_dim=10, audio_ftrs_dim=8, duration=3, noise_std=.1):
+def run(n_classes=10, synth_prms_dim=14, audio_ftrs_dim=8, duration=3, noise_std=.1):
 
     comm = cm.Communicator([ cm.READY_REP, cm.TRAIN_PUSH, cm.PREFERENCES_REQ, cm.SYNTH_REQ,
                              cm.PLAY_PULL, cm.LEARN_PULL, cm.MODEL_PULL ])

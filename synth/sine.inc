@@ -1,7 +1,7 @@
 ; parameter ranges, mapping
 gSParmnames[] fillarray "amp","cps"
 gkParm_min[] fillarray 0, 50
-gkParm_max[] fillarray 1, 5000
+gkParm_max[] fillarray 1, 1500
 gSParm_map[] fillarray "dB", "log"
 
 ; read from table, scale and map according to mapping type
@@ -19,4 +19,3 @@ chnset a1, "a1"
 chnset a2, "a2"
 
 outch 1, a1*amp, 2, a2*amp
-

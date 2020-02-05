@@ -1,5 +1,5 @@
 *.pyc
-test.wav
+test*.wav
 *.reapeaks
 *.png
 *.sfk
