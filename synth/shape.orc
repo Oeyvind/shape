@@ -1,6 +1,6 @@
 
 sr = 48000
-ksmps = 64
+ksmps = 100
 nchnls = 2
 0dbfs = 1
 
@@ -28,6 +28,7 @@ chnset giParm_values, "parmvalue_table"
 opcode read_and_map, k,i
 index xin
 kval table index, giParm_values
+kval tonek kval, 10 ; may want to update this if gesture rate changes significantly from the basic 20 Hz we started with
 if strcmpk(gSParm_map[index],"lin")==0 then
   kval = kval*(gkParm_max[index]-gkParm_min[index])+gkParm_min[index]
 elseif strcmpk(gSParm_map[index],"log")==0 then

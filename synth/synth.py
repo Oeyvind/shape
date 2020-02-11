@@ -39,8 +39,8 @@ class Synth:
 
         #set up csound
         self.cs = ctcsound.Csound()
-        #self.cs.setOption('-o/shape/synth/test%i.wav'%(time.time()*10)) #use for saving all audio files (can fill up disk quickly)
-        self.cs.setOption('-o/shape/synth/test.wav') #always overwrite audio out
+        self.cs.setOption('-o/shape/synth/test%i.wav'%(time.time()*10)) #use for saving all audio files (can fill up disk quickly)
+        #self.cs.setOption('-o/shape/synth/test.wav') #always overwrite audio out
         orcfile = open('/shape/synth/shape.orc', 'r')
         orc = orcfile.read()
         self.cs.compileOrc(orc)
@@ -55,6 +55,12 @@ class Synth:
         self.parmtable = int(self.cs.controlChannel("parmvalue_table")[0])
         self.analysistable = int(self.cs.controlChannel("analysis_table")[0])
         self.analysis_values = self.cs.table(self.analysistable) # read analysis parameters from here
+        # for downsampling analysis data to match gesture data ratio:
+        self.gesture_rate = 20
+        self.upsamp_ratio = (self.cs.sr()/self.gesture_rate)/self.cs.ksmps()
+        print('Must be whole number:', self.upsamp_ratio)
+        self.analysis_values_temp = np.zeros((int(self.upsamp_ratio),self.analysis_values.shape[0]))
+
 
     def set_synthesis_parms(self, synthesis_parms):
         self.synthesis_parms = synthesis_parms
@@ -82,8 +88,10 @@ class Synth:
         # the retrieve the analysis frame from self.analysis_parms
         # When this method return something else than zero, the synthesis process is finished and you should call cleanup()
         self.cs.tableCopyIn(self.parmtable, self.synthesis_parms)
-        errcode = self.cs.performKsmps()
-        self.cs.tableCopyOut(self.analysistable, self.analysis_values)
+        for i in range(int(self.upsamp_ratio)):
+          errcode = self.cs.performKsmps()
+          self.cs.tableCopyOut(self.analysistable, self.analysis_values_temp[i])
+        self.analysis_values = np.average(self.analysis_values_temp,0) #downsample analysis data
         return errcode
 
     def cleanup(self):
@@ -92,13 +100,13 @@ class Synth:
 
 if __name__ == '__main__':
     #test_parms = np.array([0.5,.2,0,0.9,0,0.1,0.1,0.7,0.2,0.2])
-    test_parms = np.array([0.5,.2,1,0,0,0,0,0,0,0,0,0,0,0])
+    #test_parms = np.array([0.5,.2,1,0,0,0,0,0,0,0,0,0,0,0])
     test_parms = np.random.rand(25)
     print(test_parms)
     s = Synth(3, test_parms)
-    #s.run_synth()
     errcode = 0
     while errcode == 0:
+      s.synthesis_parms= np.random.rand(25)
       errcode = s.step_synth()
     print('synthesis parms:', s.synthesis_parms)
     print('analysis parms:', s.analysis_values)
