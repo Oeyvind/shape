@@ -106,8 +106,9 @@ if __name__ == '__main__':
     s = Synth(3, test_parms)
     errcode = 0
     while errcode == 0:
-      s.synthesis_parms= np.random.rand(25)
+      s.synthesis_parms= np.random.rand(25) # set these from model
       errcode = s.step_synth()
+      outputanalysis = s.analysis_values #feed these back to model
     print('synthesis parms:', s.synthesis_parms)
     print('analysis parms:', s.analysis_values)
     s.cleanup()
