@@ -38,11 +38,12 @@ import data.communicator as cm
 TRAIN_READY = 'Train process ready'
 
 
-def train(n_classes, synth_parameters_dim, audio_features_dim):
-    comm = cm.Communicator([cm.TRAIN_PULL, cm.MODEL_PUSH])
+def train(n_classes, synth_parameters_dim, audio_features_dim, sync=False):
+    comm = cm.Communicator([cm.TRAIN_PULL, cm.MODEL_PUSH, cm.READY_REQ])
 
-    # comm.READY_REQ_SEND(TRAIN_READY)
-    # comm.READY_REQ_RECV()
+    if sync:
+        comm.READY_REQ_SEND(TRAIN_READY)
+        comm.READY_REQ_RECV()
 
     model = None
 

@@ -32,7 +32,7 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from core.models import GestureMapper#, GestureClassifier, Mapper, MASK_VALUE
+from core.models import GestureMapper
 from core.faux_gestures import trajectories
 
 class GestureMapperTest(unittest.TestCase):

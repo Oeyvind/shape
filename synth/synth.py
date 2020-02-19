@@ -27,6 +27,7 @@ Run Csound synthesizer
 import ctcsound, sys, os
 import numpy as np
 import time
+from datetime import datetime
 # To train one gesture, instantiate the synth and synthesize audio frames with step_synth(),
 # updating synthesis parameters and retrieveing analysis values for each step
 
@@ -39,8 +40,11 @@ class Synth:
 
         #set up csound
         self.cs = ctcsound.Csound()
-        self.cs.setOption('-o/shape/synth/test%i.wav'%(time.time()*10)) #use for saving all audio files (can fill up disk quickly)
-        #self.cs.setOption('-o/shape/synth/test.wav') #always overwrite audio out
+
+        self.filename = '{}.wav'.format(datetime.now())
+        
+        self.cs.setOption('-o/shape/sounds/{}'.format(self.filename)) #use for saving all audio files (can fill up disk quickly)
+        #self.cs.setOption('-o/shape/sounds/out.wav') #always overwrite audio out
         orcfile = open('/shape/synth/shape.orc', 'r')
         orc = orcfile.read()
         self.cs.compileOrc(orc)

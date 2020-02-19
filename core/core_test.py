@@ -52,7 +52,7 @@ class CoreTrainTest(unittest.TestCase):
         cls.audio_features_dim = 10
 
         cls.processes.append(mp.Process(target=core.train, args=(cls.n_classes, cls.synth_parameters_dim,
-                                                                 cls.audio_features_dim,)))
+                                                                 cls.audio_features_dim, True,)))
 
         cls.test_gestures = [ (fg.circle,
                                np.random.rand(cls.synth_parameters_dim),
@@ -64,8 +64,8 @@ class CoreTrainTest(unittest.TestCase):
         for p in cls.processes:
             p.start()
 
-        # waiting = [ core.TRAIN_READY ]
-        # cm.Waiter(cls.comm, waiting)
+        waiting = [ core.TRAIN_READY ]
+        cm.Waiter(cls.comm, waiting)
 
 
     def test_train_and_predict(self):

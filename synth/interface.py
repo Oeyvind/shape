@@ -26,29 +26,35 @@ import numpy as np #remove
 
 import data.communicator as cm
 from synth.synth import Synth
+from constants import GESTURE_SAMPLING_FREQUENCY
 
 SYNTH_READY = 'Synth interface process ready'
 
-def listen(duration):
+def listen(sync=False):
 
-    comm = cm.Communicator([ cm.SYNTH_REP ])#, cm.READY_REQ ])
+    comm = cm.Communicator([ cm.SYNTH_REP , cm.READY_REQ ])
 
-    # comm.READY_REQ_SEND(SYNTH_READY)
-    # comm.READY_REQ_RECV()
+    if sync:
+        comm.READY_REQ_SEND(SYNTH_READY)
+        comm.READY_REQ_RECV()
 
     for _, parameters in next(comm):
         
-        # For now: load a new synth each time, until the Synth bugs are worked out.
-        my_synth = Synth(duration, parameters)
+        duration = parameters.shape[0]/GESTURE_SAMPLING_FREQUENCY
+        # synthesis_parms = None since they are set explicitly below
+        my_synth = Synth(duration, None)
         
-        errcode = 0
-
-        while errcode == 0:
+        output_analysis = []
+        
+        for step_parameters in parameters:
+            my_synth.set_synthesis_parms(step_parameters)
             errcode = my_synth.step_synth()
-            
+            output_analysis.append(my_synth.get_analysis_values())
+
         print('TERMINAL ERRCODE', errcode)
         
-        comm.SYNTH_REP_SEND(my_synth.analysis_values)
+        output_analysis = np.stack(output_analysis)
+        comm.SYNTH_REP_SEND([ my_synth.filename, output_analysis ])
         my_synth.cleanup()
 
     print('Synth interface process exit')
