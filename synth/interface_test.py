@@ -54,7 +54,7 @@ class InterfaceTest(unittest.TestCase):
             self.comm.SYNTH_REQ_SEND(parameters)
             filename, analysis = self.comm.SYNTH_REQ_RECV()
 
-            fig, axs = plt.subplots(5, 2)
+            fig, axs = plt.subplots(5, 2, sharex=True)
 
             axs[0,0].plot(x, circle[:,0], label='gesture X')
             axs[0,0].legend(loc='upper right')
