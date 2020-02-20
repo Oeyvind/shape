@@ -22,13 +22,32 @@
 shape:synth ØMQ wrapper
 """
 
-import numpy as np #remove
+import multiprocessing as mp
+
+import numpy as np
 
 import data.communicator as cm
 from synth.synth import Synth
-from constants import GESTURE_SAMPLING_FREQUENCY
+from utils.constants import GESTURE_SAMPLING_FREQUENCY
 
 SYNTH_READY = 'Synth interface process ready'
+
+def _play_and_analyze(parameters):
+    
+    duration = parameters.shape[0]/GESTURE_SAMPLING_FREQUENCY
+    my_synth = Synth(duration, None) # parameters set below
+        
+    output_analysis = []
+        
+    for step_parameters in parameters:
+        my_synth.set_synthesis_parms(step_parameters)
+        errcode = my_synth.step_synth()
+        output_analysis.append(my_synth.get_analysis_values())
+
+    output_analysis = np.stack(output_analysis)
+    my_synth.cleanup()
+
+    return (my_synth.filename, output_analysis)
 
 def listen(sync=False):
 
@@ -38,23 +57,10 @@ def listen(sync=False):
         comm.READY_REQ_SEND(SYNTH_READY)
         comm.READY_REQ_RECV()
 
+    pool = mp.Pool()
+        
     for _, parameters in next(comm):
         
-        duration = parameters.shape[0]/GESTURE_SAMPLING_FREQUENCY
-        # synthesis_parms = None since they are set explicitly below
-        my_synth = Synth(duration, None)
-        
-        output_analysis = []
-        
-        for step_parameters in parameters:
-            my_synth.set_synthesis_parms(step_parameters)
-            errcode = my_synth.step_synth()
-            output_analysis.append(my_synth.get_analysis_values())
-
-        print('TERMINAL ERRCODE', errcode)
-        
-        output_analysis = np.stack(output_analysis)
-        comm.SYNTH_REP_SEND([ my_synth.filename, output_analysis ])
-        my_synth.cleanup()
-
+        comm.SYNTH_REP_SEND(pool.map(_play_and_analyze, parameters))
+    
     print('Synth interface process exit')

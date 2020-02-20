@@ -29,7 +29,7 @@ x = np.linspace(-.5, .5, 50)
 y = np.zeros(50)
 zero = np.c_[x, y]
 
-theta = np.linspace(0, 2*np.pi, 100)
+theta = np.linspace(0, 2*np.pi, 20)
 x = np.cos(theta)
 y = np.sin(theta)
 circle = np.c_[x,y]
