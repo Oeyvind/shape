@@ -25,6 +25,7 @@ shape:synth ØMQ wrapper test file
 import unittest
 import multiprocessing as mp
 import time
+import random
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -57,14 +58,15 @@ class InterfaceTest(unittest.TestCase):
         parameters = []
 
         n = 100
-        # Just random numbers
-        for _ in range(n):
-            parameters.append(np.random.rand( circle.shape[0], 14 ))
 
         for _ in range(n):
             root = np.random.rand( 1, 14 )
             root = np.repeat(root, circle.shape[0], axis=0)
-            root += np.random.normal(0, .1, size=root.shape)
+            
+            for _param in root.T:
+                _param += random.choice([X,Y])*np.random.rand()
+
+            root = np.clip(root, 0, 1)
             
             parameters.append(root)
             

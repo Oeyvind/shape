@@ -60,7 +60,7 @@ def listen(sync=False):
     pool = mp.Pool()
         
     for _, parameters in next(comm):
-        
-        comm.SYNTH_REP_SEND(pool.map(_play_and_analyze, parameters))
+        outputs = pool.map(_play_and_analyze, parameters)
+        comm.SYNTH_REP_SEND(outputs)
     
     print('Synth interface process exit')
