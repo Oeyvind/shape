@@ -32,7 +32,7 @@
 	krms_preEq	rms a1preEq			    	; simple level measure (with transient pre emphasis)
 	krms_preEq      = krms_preEq*2
 	krms		rms a1			    		; simple level measure
-	krms            = krms*1.4
+	krms            = krms*1.2
         krms_dB         = dbfsamp(krms)
 
 	kAttack		= 0.001				        ; envelope follower attack
