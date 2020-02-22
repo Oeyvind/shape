@@ -42,7 +42,7 @@ class Synth:
         self.cs = ctcsound.Csound()
 
         self.filename = '{}.wav'.format(datetime.now())
-        
+
         self.cs.setOption('-o/shape/sounds/{}'.format(self.filename)) #use for saving all audio files (can fill up disk quickly)
         #self.cs.setOption('-o/shape/sounds/out.wav') #always overwrite audio out
         orcfile = open('/shape/synth/shape.orc', 'r')
