@@ -84,8 +84,8 @@ class InterfaceTest(unittest.TestCase):
                                                                                                         name)
 
             for filename, similarity in sounds:
-                html += '{} <audio controls> <source src="{}" type="audio/wav"> </audio>'.format(similarity, filename)
-                html += '<br> <img src="{}.png" width="100%"> <hr>'.format(filename)
+                html += '<table><tr><td><b> {} </b><br><br> <audio controls> <source src="{}" type="audio/wav"> </audio></td>'.format(similarity, filename)
+                html += '<td><img src="{}.png" width="60%"> </td></tr></table> <hr>'.format(filename)
 
             html += '</body></html>'
 
