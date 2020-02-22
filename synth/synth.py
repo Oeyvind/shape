@@ -36,7 +36,7 @@ class Synth:
         self.duration = duration
         self.synthesis_parms = synthesis_parms # numpy array with size 10 for the instr submono
         # settings
-        instrument = instrument 
+        instrument = instrument
 
         #set up csound
         self.cs = ctcsound.Csound()
@@ -44,9 +44,11 @@ class Synth:
         self.filename = '{}.wav'.format(datetime.now().strftime("%d-%m-%Y-%H-%M-%S-%f"))
 
         self.cs.setOption('-o/shape/sounds/{}'.format(self.filename)) #use for saving all audio files (can fill up disk quickly)
-        #self.cs.setOption('-o/shape/sounds/out.wav') #always overwrite audio out
+        self.cs.setOption('-m0')
+        self.cs.setOption('-d')
         orcfile = open('/shape/synth/shape.orc', 'r')
         orc = orcfile.read()
+        orcfile.close()
         self.cs.compileOrc(orc)
         self.cs.readScore("f0 .1")
         self.cs.start()

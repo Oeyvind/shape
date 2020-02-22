@@ -85,10 +85,10 @@ class InterfaceTest(unittest.TestCase):
             html = '<html><title>{}</title><body><h1>{}</h1><img src="_{}.png" width="50%"><hr>'.format(title,
                                                                                                         title,
                                                                                                         name)
-            
+
             for filename, similarity in sounds:
-                html += '{}<audio controls> <source src="{}" type="audio/wav"> </audio>'.format(similarity, filename)
-                html += '<br> <img src="{}.png" width="100%"> <hr>'.format(filename)
+                html += '<table><tr><td><b> {} </b><br><br> <audio controls> <source src="{}" type="audio/wav"> </audio></td>'.format(similarity, filename)
+                html += '<td><img src="{}.png" width="60%"> </td></tr></table> <hr>'.format(filename)
 
             html += '</body></html>'
 
@@ -106,7 +106,7 @@ class InterfaceTest(unittest.TestCase):
 
     def test_partikkel(self):
         self.evaluate(PARTIKKEL.name, PARTIKKEL.n_parameters)
-                
+
     @classmethod
     def tearDownClass(cls):
         cls.comm.kill()
