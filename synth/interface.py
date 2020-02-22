@@ -35,10 +35,10 @@ from utils.constants import GESTURE_SAMPLING_FREQUENCY
 
 SYNTH_READY = 'Synth interface process ready'
 
-def play_and_analyze(parameters, X, Y, plot):
+def play_and_analyze(parameters, instrument, X, Y, plot):
     
     duration = parameters.shape[0]/GESTURE_SAMPLING_FREQUENCY
-    my_synth = Synth(duration, None) # parameters set below
+    my_synth = Synth(duration, instrument, None, GESTURE_SAMPLING_FREQUENCY) # parameters set below
         
     output_analysis = []
         
@@ -104,8 +104,8 @@ def listen(sync=False):
 
     pool = mp.Pool()
         
-    for _, (parameters, X, Y, plot) in next(comm):
-        func = partial(play_and_analyze, X=X, Y=Y, plot=plot)
+    for _, (parameters, instrument, X, Y, plot) in next(comm):
+        func = partial(play_and_analyze, instrument=instrument, X=X, Y=Y, plot=plot)
         outputs = pool.map(func, parameters)
         comm.SYNTH_REP_SEND(outputs)
     

@@ -32,11 +32,11 @@ from datetime import datetime
 # updating synthesis parameters and retrieveing analysis values for each step
 
 class Synth:
-    def __init__(self, duration, synthesis_parms):
+    def __init__(self, duration, instrument, synthesis_parms, gesture_rate):
         self.duration = duration
         self.synthesis_parms = synthesis_parms # numpy array with size 10 for the instr submono
         # settings
-        instrument = 'additive' #'sine', 'submono', 'additive', 'partikkel'
+        instrument = instrument 
 
         #set up csound
         self.cs = ctcsound.Csound()
@@ -60,7 +60,7 @@ class Synth:
         self.analysistable = int(self.cs.controlChannel("analysis_table")[0])
         self.analysis_values = self.cs.table(self.analysistable) # read analysis parameters from here
         # for downsampling analysis data to match gesture data ratio:
-        self.gesture_rate = 20
+        self.gesture_rate = gesture_rate
         self.upsamp_ratio = (self.cs.sr()/self.gesture_rate)/self.cs.ksmps()
         print('Must be whole number:', self.upsamp_ratio)
         self.analysis_values_temp = np.zeros((int(self.upsamp_ratio),self.analysis_values.shape[0]))
@@ -105,6 +105,7 @@ class Synth:
 if __name__ == '__main__':
     #test_parms = np.array([0.5,.2,0,0.9,0,0.1,0.1,0.7,0.2,0.2])
     #test_parms = np.array([0.5,.2,1,0,0,0,0,0,0,0,0,0,0,0])
+
     test_parms = np.random.rand(25)
     print(test_parms)
     s = Synth(3, test_parms)
