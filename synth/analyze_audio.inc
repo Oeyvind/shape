@@ -257,35 +257,40 @@ if kpitchmethod == 1 then
 	kcps, ka0 	ptrack a1, ihopsize
 
 elseif kpitchmethod == 2 then
-	kd 		= 0.1
-	kloopf		= 20
-	kloopq		= 0.3
+	kd = 0.1
+	kloopf = 20
+	kloopq = 0.3
 	acps, alockp	plltrack a1, kd, kloopf, kloopq, kpitch_low, kpitch_high, ampdbfs(knoiseFloor_dB-8)
-	kcps		downsamp acps
+	kcps downsamp acps
 
 elseif kpitchmethod == 3 then
 pamdf:
-        kcps,k0	        pitchamdf a1, i(kpitch_low), i(kpitch_high), i(kpitch_low), 0 , 1 ,i(kpitch_low) ,0
-        rireturn
+  kcps,k0 pitchamdf a1, i(kpitch_low), i(kpitch_high), i(kpitch_low), 0 , 1 ,i(kpitch_low) ,0
+  rireturn
 
 elseif kpitchmethod == 4 then
-	kcps    	EpochCps a1     ; pitch analysis by epoch filtering and zero cross count
+	kcps EpochCps a1     ; pitch analysis by epoch filtering and zero cross count
 
 endif
 	kmedianSize	chnget "pitchFilterSize"
-	kcps	        mediank	kcps, kmedianSize, 256
-        kcps            limit kcps, kpitch_low, kpitch_high
-        kcps            tonek kcps, 50
+	kcps mediank kcps, kmedianSize, 256
+  kcps limit kcps, kpitch_low, kpitch_high
+  kcps tonek kcps, 50
 
-	kcps		samphold kcps, kgate2
-        ksemitone       = limit:k((log2(kcps/440)*12)+69, 0, 127)
-
+	kcps samphold kcps, kgate2
+	ksemitone = limit:k((log2(kcps/440)*12)+69, 0, 127)
 
 ; ***************
 ; normalization
         kcps_n          = divz(kcps, kpitch_high, 1)
         kpitch_n        = limit(divz(kcps-kpitch_low, kpitch_high-kpitch_low, 1), 0, 1)    ; normalized and offset
-        kcentroid_n     = kcentroidf / (sr*0.15)
+
+				; attempting linear pitch normalization
+				ksemi_low = limit:k((log2(kpitch_low/440)*12)+69, 0, 127)
+				ksemi_high = limit:k((log2(kpitch_high/440)*12)+69, 0, 127)
+				kpitch_n = (ksemitone-ksemi_low)*(divz(1,ksemi_high-ksemi_low,1))
+
+				kcentroid_n     = kcentroidf / (sr*0.25)
         kspread_n       = kspread / (sr*0.15);(sr*0.2)
         kskewness_n     = kskewness / 20
         kurtosis_n      = kurtosis / 250
