@@ -41,8 +41,8 @@ class Synth:
         #set up csound
         self.cs = ctcsound.Csound()
 
-        self.filename = '{}.wav'.format(datetime.now())
-        
+        self.filename = '{}.wav'.format(datetime.now().strftime("%d-%m-%Y-%H-%M-%S-%f"))
+
         self.cs.setOption('-o/shape/sounds/{}'.format(self.filename)) #use for saving all audio files (can fill up disk quickly)
         #self.cs.setOption('-o/shape/sounds/out.wav') #always overwrite audio out
         orcfile = open('/shape/synth/shape.orc', 'r')
@@ -60,7 +60,9 @@ class Synth:
         self.analysistable = int(self.cs.controlChannel("analysis_table")[0])
         self.analysis_values = self.cs.table(self.analysistable) # read analysis parameters from here
         # for downsampling analysis data to match gesture data ratio:
+
         self.gesture_rate = gesture_rate
+
         self.upsamp_ratio = (self.cs.sr()/self.gesture_rate)/self.cs.ksmps()
         print('Must be whole number:', self.upsamp_ratio)
         self.analysis_values_temp = np.zeros((int(self.upsamp_ratio),self.analysis_values.shape[0]))

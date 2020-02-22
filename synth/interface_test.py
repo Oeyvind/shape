@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
-# 
+#
 #    Copyright 2018 Oeyvind Brandtsegg and Axel Tidemann
 #
 #    This file is part of the Shape package
 #
 #    The Shape package is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License version 3 
+#    it under the terms of the GNU General Public License version 3
 #    as published by the Free Software Foundation.
 #
 #    The Shape is distributed in the hope that it will be useful,
@@ -15,10 +15,10 @@
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with The Shape package.  
+#    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
-""" 
+"""
 shape:synth ØMQ wrapper test file
 """
 
@@ -37,7 +37,7 @@ from core.faux_gestures import trajectories
 from utils.constants import ADDITIVE, SUBMONO, SINE, PARTIKKEL
 
 class InterfaceTest(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         cls.comm = cm.Communicator([cm.SYNTH_REQ, cm.READY_REP, cm.DEATH_PUB])
@@ -47,7 +47,6 @@ class InterfaceTest(unittest.TestCase):
 
         cm.Waiter(cls.comm, [ SYNTH_READY ])
 
-        
     def evaluate(self, instrument, n_parameters):
         names = [ 'zero', 'circle', 'line', 'r_line', 'sine', 'mega_sine', 'spiral', 'tanh', 'random' ]
         for name, trajectory in zip(names, trajectories):
@@ -61,7 +60,7 @@ class InterfaceTest(unittest.TestCase):
             gesture_plot = '/shape/sounds/_{}.png'.format(name)
             plt.savefig(gesture_plot, dpi=300)
             plt.clf()
-            
+
             parameters = []
 
             n = 8
@@ -86,7 +85,7 @@ class InterfaceTest(unittest.TestCase):
             html = '<html><title>{}</title><body><h1>{}</h1><img src="_{}.png" width="50%"><hr>'.format(title,
                                                                                                         title,
                                                                                                         name)
-
+            
             for filename, similarity in sounds:
                 html += '{}<audio controls> <source src="{}" type="audio/wav"> </audio>'.format(similarity, filename)
                 html += '<br> <img src="{}.png" width="100%"> <hr>'.format(filename)
@@ -113,6 +112,6 @@ class InterfaceTest(unittest.TestCase):
         cls.comm.kill()
         cls.listen.join()
 
-        
+
 if __name__ == '__main__':
     unittest.main()

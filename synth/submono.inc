@@ -55,8 +55,8 @@ irez = .6 ; VCF Resonance
 avcfL moogladder aleft+aphas, kfilter1fq, irez
 avcfR moogladder aright+aphas, kfilter1fq, irez
 
-a1 butterhp avcfL*2, kcps * 0.5	; try to filter out some LF artifacts
-a2 butterhp avcfR*2, kcps * 0.5	; try to filter out some LF artifacts
+a1 butterhp avcfL, kcps * 0.5	; try to filter out some LF artifacts
+a2 butterhp avcfR, kcps * 0.5	; try to filter out some LF artifacts
 
 amp = interp(kamp)
 a1 = a1*amp
@@ -65,10 +65,10 @@ a2 = a2*amp
 denorm	a1, a2
 kfilt limit ((kcps*0.8) + kfilter2fq), 20, 18000
 alo lpf18 a1, kfilt, kfilter2res, kfilter2dist
-a1 = alo*0.8
+a1 = alo*0.6
 
 alo2 lpf18 a2, kfilt, kfilter2res, kfilter2dist
-a2 = alo2*0.8
+a2 = alo2*0.6
 
 chnset a1, "a1"
 chnset a2, "a2"

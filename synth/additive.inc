@@ -55,7 +55,7 @@ a12 poscil kamp12, kcps*12
 
 asum sum a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12
 amp = interp(kamp)
-a1 = asum*amp*(1/12)
+a1 = asum*amp*(1/12)*1.4
 a2 = a1
 
 chnset a1, "a1"
