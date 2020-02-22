@@ -290,7 +290,7 @@ endif
 				ksemi_high = limit:k((log2(kpitch_high/440)*12)+69, 0, 127)
 				kpitch_n = (ksemitone-ksemi_low)*(divz(1,ksemi_high-ksemi_low,1))
 
-				kcentroid_n     = kcentroidf / (sr*0.25)
+				kcentroid_n     = kcentroidf / (sr*0.5)
         kspread_n       = kspread / (sr*0.15);(sr*0.2)
         kskewness_n     = kskewness / 20
         kurtosis_n      = kurtosis / 250

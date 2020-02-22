@@ -5,20 +5,20 @@ gkParm_max[] fillarray 1, 1500, 1,1,1,1,1,1,1,1,1,1,1,1
 gSParm_map[] fillarray "lin", "log", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
 
 ; default values for unmapped parms
-tableiw 1, 0, giParm_values
-tableiw 0.3, 1, giParm_values
-tableiw 0.5, 2, giParm_values
-tableiw 0.25, 3, giParm_values
-tableiw 0.1, 4, giParm_values
-tableiw 0.05, 5, giParm_values
-tableiw 0.02, 6, giParm_values
-tableiw 0.01, 7, giParm_values
-tableiw 0, 8, giParm_values
-tableiw 0, 9, giParm_values
-tableiw 0, 10, giParm_values
-tableiw 0, 11, giParm_values
-tableiw 0, 12, giParm_values
-tableiw 0, 13, giParm_values
+tablew 1, 0, giParm_values
+tablew 0.3, 1, giParm_values
+tablew 0.5, 2, giParm_values
+tablew 0.25, 3, giParm_values
+tablew 0.1, 4, giParm_values
+tablew 0.05, 5, giParm_values
+tablew 0.02, 6, giParm_values
+tablew 0.01, 7, giParm_values
+tablew 0, 8, giParm_values
+tablew 0, 9, giParm_values
+tablew 0, 10, giParm_values
+tablew 0, 11, giParm_values
+tablew 0, 12, giParm_values
+tablew 0, 13, giParm_values
 
 ; read from table, scale and map according to mapping type
 kamp read_and_map 0
