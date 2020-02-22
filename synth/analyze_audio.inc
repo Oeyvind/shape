@@ -3,7 +3,7 @@
 ;    This file is part of the Shape package
 ;
 ;    The Shape package is free software: you can redistribute it and/or modify
-;    it under the terms of the GNU General Public License version 3 
+;    it under the terms of the GNU General Public License version 3
 ;    as published by the Free Software Foundation.
 ;
 ;    The shape is distributed in the hope that it will be useful,
@@ -12,7 +12,7 @@
 ;    GNU General Public License for more details.
 ;
 ;    You should have received a copy of the GNU General Public License
-;    along with The Feature-Extract-Modulator package.  
+;    along with The Feature-Extract-Modulator package.
 ;    If not, see <http://www.gnu.org/licenses/>.
 
 ; ***************
@@ -22,7 +22,7 @@
 	kpreEqHiShelfGain	chnget "preEqHiShelfGain"
 	;kpreEqLoShelfFq	        chnget "preEqLoShelfFq"
 	;kpreEqLoShelfGain	chnget "preEqLoShelfGain"
-	
+
         a1preEq	                pareq a1, kpreEqHiShelfFq, ampdb(kpreEqHiShelfGain), 0.7,  2
         ;a1preEq	                pareq a1preEq, kpreEqHiShelfFq, ampdb(kpreEqLoShelfGain), 0.7,  1
         ;kautogain               = ampdbfs(-kpreEqHiShelfGain)
@@ -31,14 +31,14 @@
 ; amplitude tracking
 	krms_preEq	rms a1preEq			    	; simple level measure (with transient pre emphasis)
 	krms_preEq      = krms_preEq*2
-	krms		rms a1			    		; simple level measure 
+	krms		rms a1			    		; simple level measure
 	krms            = krms*1.4
         krms_dB         = dbfsamp(krms)
-                
+
 	kAttack		= 0.001				        ; envelope follower attack
 	kRelease        = 0.5;chnget "amp_transientDecTime"           ; envelope follower release
 	a_env		follow2	a1preEq, kAttack, kRelease	; envelope follower
-        k_env		downsamp a_env	
+        k_env		downsamp a_env
 
 	knoiseFloor_dB	chnget "inputNoisefloor"
 	kgate		= (krms_dB < knoiseFloor_dB ? 0 : 1)	;  gate when below noise floor (for sampholding centroid and pitch etc)
@@ -71,7 +71,7 @@
 ; ***************
 ;analyze amplitude transients
 	iresponse	        = 10 			                ; response time in milliseconds
-	ktthresh	        chnget "amp_transientThresh"            ; transient trig threshold 
+	ktthresh	        chnget "amp_transientThresh"            ; transient trig threshold
 	klowThresh	        = knoiseFloor_dB                        ; lower threshold for transient detection
         kdoubleLimit            chnget "amp_transientDoubleLimit"       ; minimum duration between events, (double trig limit)
         kdecThresh	        chnget "amp_transientDecThresh"         ; retrig threshold, how much must the level decay from its local max before allowing new transient trig
@@ -81,8 +81,8 @@
         ktime           timeinsts
         kprevaTranTime  init 0
         katranDensity   init 0
-        
-; transient hold, statistics etc 
+
+; transient hold, statistics etc
         ktrigButn       trigger	krms_tran0, 0.5, 0
         if ktrigButn > 0 then
         katranTime      = ktime-kprevaTranTime
@@ -96,10 +96,10 @@ rireturn
         katran1second   delayk krms_tran0, 1
         katranCount     init 0
         katranCount     += krms_tran0
-        katranCount     -= katran1second                ; this will be accurate when playing an integer number of transient within each period  
+        katranCount     -= katran1second                ; this will be accurate when playing an integer number of transient within each period
                                                         ; but it will have jitter when playing at a tempo of e.g. 3.5 transients per second
 
-        
+
         katranDensity   = (katranDensity_t < 1 ? katranDensity_t : katranCount)
         katranDensity   = (abs(katranDensity_t-katranCount) < 1 ? katranDensity_t : katranCount)
         iatranrise      = 0.5
@@ -109,12 +109,12 @@ rireturn
         katransDensEnv  init 0
         katransDensEnv   = (katranDensity>katransDensEnv?(katranDensity+(itrandensA*(katransDensEnv-katranDensity))):(katranDensity+(itrandensB*(katransDensEnv-katranDensity))))
         katransDensEnv_n = katransDensEnv/14
-                
+
         ; transient dynamics
         kenv_dyn_count  init 0
         isize_env_dyn   = 5
         kenv_dyn_Arr[]  init isize_env_dyn
-        
+
         krms_tran0_del delayk krms_tran0, 50/1000
         if krms_tran0 > 0 then
         krms_this       = 0
@@ -140,7 +140,7 @@ rireturn
 	iwtype 			= 1
 	fsin 			pvsanal	a1, gifftsize, gifftsize/2, gifftsize, iwtype
 	kflag   		pvsftw	fsin,gifna,gifnf          	; export  amps  and freqs to table,
-        
+
 	kupdateRate		= 200
 	kmetro			metro kupdateRate
 	kdoflag			init 0
@@ -159,7 +159,7 @@ if (kdoflag > 0) && (kflag > 0) then
 
 	kArrAprev[]		= kArrA
         			copyf2array kArrA, gifna
-        			copyf2array kArrF, gifnf	
+        			copyf2array kArrF, gifnf
 	ksumAmp			sumarray kArrA
 	kmaxAmp			maxarray kArrA
 	ksumAmp                 = (ksumAmp == 0 ? 1 : ksumAmp)
@@ -168,8 +168,8 @@ if (kdoflag > 0) && (kflag > 0) then
 	kArrCorr		= kArrA*kArrAprev
 	kspread		        = sumarray(((kArrF+(kcentroid*-1))^2)*kArrAnorm)^0.5
 	kskewness	        divz sumarray(((kArrF+(kcentroid*-1))^3)*kArrAnorm), kspread^3, 1
-	kurtosis	        divz sumarray(((kArrF+(kcentroid*-1))^4)*kArrAnorm), kspread^4, 1	
-        kcrest			divz kmaxAmp, ksumAmp/gifft_tabsize, 1  
+	kurtosis	        divz sumarray(((kArrF+(kcentroid*-1))^4)*kArrAnorm), kspread^4, 1
+        kcrest			divz kmaxAmp, ksumAmp/gifft_tabsize, 1
         kArrAlog[]              = kArrA
         kArrAlog[0]             = 1
         kArrAlog[1]             = 0
@@ -244,18 +244,18 @@ endif
         kpitch_high     chnget "pitch_high"
         kpitch_low      init 100
         kpitch_high     init 1000
-         
+
         ; reinit pitchamdf when pitch range changes
         kp_range_change changed kpitch_low, kpitch_high
         if kp_range_change > 0 then
         reinit pamdf
         endif
-        
+
 if kpitchmethod == 1 then
-	kcps 		init 0	
+	kcps 		init 0
 	ihopsize	= 512
 	kcps, ka0 	ptrack a1, ihopsize
-        
+
 elseif kpitchmethod == 2 then
 	kd 		= 0.1
 	kloopf		= 20
@@ -279,7 +279,7 @@ endif
 
 	kcps		samphold kcps, kgate2
         ksemitone       = limit:k((log2(kcps/440)*12)+69, 0, 127)
-        
+
 
 ; ***************
 ; normalization
@@ -328,7 +328,7 @@ endif
         ;kmfcc3          limit kmfcc3, 0, 1
         ;kmfcc4          limit kmfcc4, 0, 1
         ;kmfcc5          limit kmfcc5, 0, 1
-	kmfccdiff	limit kmfccdiff, 0, 1 
+	kmfccdiff	limit kmfccdiff, 0, 1
 
 ; export analysis to Python
 tablew krms, 0, gianalysis
@@ -339,4 +339,3 @@ tablew kflatness_n, 4, gianalysis
 tablew kcrest_n, 5, gianalysis
 tablew kflux_n, 6, gianalysis
 tablew kmfccdiff, 7, gianalysis
-

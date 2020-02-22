@@ -60,7 +60,7 @@ class Synth:
         self.analysistable = int(self.cs.controlChannel("analysis_table")[0])
         self.analysis_values = self.cs.table(self.analysistable) # read analysis parameters from here
         # for downsampling analysis data to match gesture data ratio:
-        self.gesture_rate = 20
+        self.gesture_rate = 25
         self.upsamp_ratio = (self.cs.sr()/self.gesture_rate)/self.cs.ksmps()
         print('Must be whole number:', self.upsamp_ratio)
         self.analysis_values_temp = np.zeros((int(self.upsamp_ratio),self.analysis_values.shape[0]))
