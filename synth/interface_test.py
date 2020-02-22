@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
-# 
+#
 #    Copyright 2018 Oeyvind Brandtsegg and Axel Tidemann
 #
 #    This file is part of the Shape package
 #
 #    The Shape package is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License version 3 
+#    it under the terms of the GNU General Public License version 3
 #    as published by the Free Software Foundation.
 #
 #    The Shape is distributed in the hope that it will be useful,
@@ -15,10 +15,10 @@
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with The Shape package.  
+#    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
-""" 
+"""
 shape:synth ØMQ wrapper test file
 """
 
@@ -36,7 +36,7 @@ import data.communicator as cm
 from core.faux_gestures import trajectories
 
 class InterfaceTest(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         cls.comm = cm.Communicator([cm.SYNTH_REQ, cm.READY_REP, cm.DEATH_PUB])
@@ -46,7 +46,7 @@ class InterfaceTest(unittest.TestCase):
 
         cm.Waiter(cls.comm, [ SYNTH_READY ])
 
-        
+
     def test_listen(self):
         names = [ 'zero', 'circle', 'line', 'r_line', 'sine', 'mega_sine', 'spiral', 'tanh', 'random' ]
         for name, trajectory in zip(names, trajectories):
@@ -59,10 +59,10 @@ class InterfaceTest(unittest.TestCase):
             gesture_plot = '/shape/sounds/_{}.png'.format(name)
             plt.savefig(gesture_plot, dpi=300)
             plt.clf()
-            
+
             parameters = []
 
-            n = 100
+            n = 5
 
             for _ in range(n):
                 root = np.random.rand( 1, 14 )
@@ -97,6 +97,6 @@ class InterfaceTest(unittest.TestCase):
         cls.comm.kill()
         cls.listen.join()
 
-        
+
 if __name__ == '__main__':
     unittest.main()

@@ -41,7 +41,7 @@ class Synth:
         #set up csound
         self.cs = ctcsound.Csound()
 
-        self.filename = '{}.wav'.format(datetime.now())
+        self.filename = '{}.wav'.format(datetime.now().strftime("%d-%m-%Y-%H-%M-%S-%f"))
 
         self.cs.setOption('-o/shape/sounds/{}'.format(self.filename)) #use for saving all audio files (can fill up disk quickly)
         #self.cs.setOption('-o/shape/sounds/out.wav') #always overwrite audio out
