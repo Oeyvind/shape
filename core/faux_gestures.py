@@ -56,14 +56,11 @@ y = r*np.sin(theta)
 y = y/max(abs(y))
 spiral = np.c_[x,y]
 
-y = expit(np.linspace(-10, 10, 60))
-sigmoid = np.c_[np.linspace(-1, 1, 60), y]
-
-y = np.tanh(np.linspace(-5, 5, 110))
-tanh = np.c_[np.linspace(-1, 1, 110), y]
+y = np.tanh(np.linspace(-5, 5, 60))
+tanh = np.c_[np.linspace(-1, 1, 60), y]
 
 x = np.linspace(-1, 1, 40)
 y = np.linspace(0, 1, 40)*np.random.random(40)
 random = np.c_[x,y]
 
-trajectories = [ zero, circle, line, r_line, sine, mega_sine, spiral, sigmoid, tanh, random ]
+trajectories = [ zero, circle, line, r_line, sine, mega_sine, spiral, tanh, random ]
