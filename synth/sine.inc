@@ -1,8 +1,12 @@
 ; parameter ranges, mapping
 gSParmnames[] fillarray "amp","cps"
 gkParm_min[] fillarray 0, 50
-gkParm_max[] fillarray 1, 1500
-gSParm_map[] fillarray "dB", "log"
+gkParm_max[] fillarray 1, 1200
+gSParm_map[] fillarray "lin", "log"
+
+; default values for unmapped parms
+tablew 0.5, 0, giParm_values
+tablew 0.3, 1, giParm_values
 
 ; read from table, scale and map according to mapping type
 kamp read_and_map 0

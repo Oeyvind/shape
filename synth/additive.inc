@@ -1,11 +1,11 @@
 ; parameter ranges, mapping
 gSParmnames[] fillarray "amp","cps","amp1","amp2","amp3","amp4","amp5","amp6","amp7","amp8","amp9","amp10","amp11","amp12"
 gkParm_min[] fillarray 0, 50, 0,0,0,0,0,0,0,0,0,0,0,0
-gkParm_max[] fillarray 1, 1500, 1,1,1,1,1,1,1,1,1,1,1,1
+gkParm_max[] fillarray 1, 1200, 1,1,1,1,1,1,1,1,1,1,1,1
 gSParm_map[] fillarray "lin", "log", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin"
 
 ; default values for unmapped parms
-tablew 1, 0, giParm_values
+tablew 0.5, 0, giParm_values
 tablew 0.3, 1, giParm_values
 tablew 0.5, 2, giParm_values
 tablew 0.25, 3, giParm_values
