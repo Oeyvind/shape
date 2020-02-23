@@ -3,7 +3,7 @@
 form size(401, 415), caption("Shape"), pluginID("shap")
 image bounds(0, 0, 401, 214), file("shape.png"), corners(10)
 
-button bounds(20,5,80,10), channel("osc"), text("osc"), colour:0("yellow"), colour:1("green")
+button bounds(155,175,80,10), channel("osc"), text("osc"), colour:0("yellow"), colour:1("green")
 
 button bounds(20,200,80,10), channel("sine"), text("sine") colour:0("yellow"), colour:1("green")
 button bounds(110,200,80,10), channel("submono"), text("submono"), colour:0("yellow"), colour:1("green")
