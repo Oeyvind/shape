@@ -28,6 +28,7 @@ import glob
 files = glob.glob('./sounds/*.wav')
 files.extend(glob.glob('./sounds/*.png'))
 files.extend(glob.glob('./sounds/*.html'))
+files.extend(glob.glob('./sounds/*.reapeaks'))
 for f in files:
     os.remove(f)
 print('contents of /sounds now deleted')

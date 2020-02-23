@@ -4,17 +4,27 @@ gSParmnames[] fillarray "amp","grainrate", "graindur", "grainsustain", "grainsha
                         "sineamp", "sawamp", "squareamp", "pulseamp", "trainamp", "sinephase", "sawphase", "squarephase", "pulsephase",\
                         "trainpitch", "trainpartials", "trainchroma"
 
-gkParm_min[] fillarray 0, 50, 0.1, 0.0, 0.01, 0, 0, 0,\
-                       0.25,0.25,0.25,0.25,0.25,\
-                       0,0,0,0,0,0,0,0,0,\
-                       0.25,2,0.25
+gkParm_min[] fillarray 0.0, 50, .1, 0.0, 0.01, 0, 0, 0,\
+                       0.5,0.5,0.5,0.5,0.5,\
+                       .1,0,0,0,0,0,0,0,0,\
+                       0.5,3,1
 
-gkParm_max[] fillarray 1, 1500, 3, 1.0, 0.99, 4, 5, 5,\
-                       4,4,4,4,4,\
-                       1,1,1,1,1,1,1,1,1,\
-                       4,20,3
+gkParm_max[] fillarray 1.0, 1000, 2, 0.9, 0.99, 1, 1, 1,\
+                       2,2,2,2,2,\
+                       1,1,1,1,1,1,1,1,0.4,\
+                       2,20,3
+/*
+ gkParm_min[] fillarray 0.1, 50, 0.1, 0.0, 0.01, 0, 0, 0,\
+                        0.25,0.25,0.25,0.25,0.25,\
+                        0,0,0,0,0,0,0,0,0,\
+                        0.25,2,0.25
 
-gSParm_map[] fillarray "dB", "log", "lin", "lin", "lin", "lin", "lin", "lin",\
+ gkParm_max[] fillarray 1, 1500, 3, 1.0, 0.99, 4, 5, 5,\
+                        4,4,4,4,4,\
+                        1,1,1,1,1,1,1,1,1,\
+                        4,20,3
+*/
+gSParm_map[] fillarray "lin", "log", "lin", "lin", "lin", "pow2", "pow2", "pow2",\
                        "lin", "lin", "lin", "lin", "lin", \
                        "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", "lin", \
                        "lin", "lin", "lin"
@@ -85,7 +95,7 @@ kchroma read_and_map 24
 				idisttab ftgentmp	0, 0, 16, 16, 1, 16, -10, 0	; probability distribution for random grain masking
 
 			  ; grain shape
-				kduration	= (kgraindur*1000)/kgrainrate		; grain dur in milliseconds, relative to grain rate
+				kduration	divz (kgraindur*1000), kgrainrate, 100		; grain dur in milliseconds, relative to grain rate
 
 				ienv_attack	= gisigmorise 				; grain attack shape (from table)
 				ienv_decay = gisigmofall 				; grain decay shape (from table)
@@ -144,7 +154,7 @@ a1,a2,a3,a4,a5,a6,a7,a8	partikkel \
 		  kdistribution, idisttab, async, \
 			kenv2amt, ienv2tab, ienv_attack, ienv_decay, \
 		  ksustain_amount, ka_d_ratio, kduration, \
-		  0.25, \
+		  1, \
 		  igainmasks, \
       kwavfreq, \
 			ksweepshape, iwavfreqstarttab, iwavfreqendtab, \
@@ -158,13 +168,16 @@ a1,a2,a3,a4,a5,a6,a7,a8	partikkel \
       kwavekey1, kwavekey2, kwavekey3, kwavekey4, \
 		  imax_grains
 
-      afeed           = (a1+a2)*0.5
-      aenv            madsr 0.001, 0.1, 0.8, 0.1
-
-
-amp = interp(kamp)
-a1 = a1*aenv*amp
-a2 = a2*aenv*amp
+kwaveamp_norm divz 1, (ksineamp+ksawamp+ksquareamp+kpulseamp+ktrainamp), 1 ; ampl normalization based on combine source wave amps
+/*
+kdur_shortnorm  = 1;(kgrainfreq*kgraindur < 0.7 ? divz(0.7,kgrainfreq*kgraindur,1) : 1) ; amp normalization if grain dur is shorter than one source wave cycle
+;aenv madsr 0.001, 0.1, 0.8, 0.1
+*/
+kdur_longnorm = (kgraindur > 1 ? 1/kgraindur : 1)
+amp = interp(kamp)*kwaveamp_norm*kdur_longnorm;*kdur_shortnorm
+a1 butterhp a1*amp, 5 ; dcblock
+a2 butterhp a2*amp, 5
+afeed = (a1+a2)*0.5
 
 chnset a1, "a1"
 chnset a2, "a2"
