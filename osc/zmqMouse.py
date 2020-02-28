@@ -20,7 +20,7 @@
 
 
 """
-Ã˜MK client test with mouse/trackpad
+ØMK client test with mouse/trackpad
 """
 
 import zmq
@@ -35,9 +35,9 @@ socket.bind("tcp://*:8802")
 mouse = Controller()
 
 while True:
-  msg = "mouse "
-  msg += str(mouse.position[0]*(1/2000.0)) + " " # normalize mouse data and send
-  msg += str(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
-  print(msg)
-  socket.send_string(msg)
-  #time.sleep(1.0/25)
+    msg = "mouse "
+    msg += str(mouse.position[0]*(1/2000.0)) + " " # normalize mouse data and send
+    msg += str(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
+    print(msg)
+    socket.send_string(msg)
+    time.sleep(1.0/25)

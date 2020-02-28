@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 #
 #    Copyright 2020 Oeyvind Brandtsegg and Axel Tidemann
 #
@@ -19,22 +19,33 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 
 """
-ØMK server test
+ZMK server, receive synth parameters and send them over OSC to synth
 """
 
 import sys
 import zmq
+from pythonosc.dispatcher import Dispatcher
+from pythonosc import osc_server
+from pythonosc import udp_client
 
-#  Socket to talk to server
+#  Socket to get synth parms over ZMK
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
+print("Getting synthesis parameters")
+socket.connect("tcp://localhost:8803")
+socket.setsockopt_string(zmq.SUBSCRIBE, "synthparm")
 
-print("Getting data from mouse serverâ€¦")
-socket.connect("tcp://localhost:8802")
+# OSC client
+send_port = 8903
+osc_client = udp_client.SimpleUDPClient("127.0.0.1", send_port)  # OSC Client for sending messages.
 
-socket.setsockopt_string(zmq.SUBSCRIBE, "mouse")
+def send_to_synth(parameters):
+    print(parameters)
+    osc_client.send_message("/shapesynth", parameters)
 
 while True:
-  string = socket.recv_string()
-  address, x, y = string.split()
-  print(address, x, y)
+    data = socket.recv_string()
+    parameters = data.split()[1:]
+    for i in range(len(parameters)):
+        parameters[i] = float(parameters[i])
+    send_to_synth(parameters)
