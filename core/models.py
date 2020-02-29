@@ -31,13 +31,13 @@ import numpy as np
 from sklearn.utils import shuffle
 from tensorflow.keras.preprocessing.sequence import pad_sequences as pad
 
-MASK_VALUE = -100
+from utils.constants import MASK_VALUE
 
 class GestureMapper:
 
-    def __init__(self, input_dim, n_classes, synth_parameters_dim, audio_features_dim,
+    def __init__(self, input_dim, n_classes, synth_parameters_dim, 
                  n_filters=20, filter_widths=range(1,7), dropout=.5, hidden_size=128, n_hidden_layers=2,
-                 noise_std=.1, epochs=10, n_augments=100, validation_split=.2):
+                 noise_std=.1, epochs=10, n_augments=10, validation_split=.2, history_length=30):
 
         inputs = layers.Input(shape=(None, input_dim))
 
@@ -57,18 +57,15 @@ class GestureMapper:
 
         gesture = layers.Dense(n_classes, activation='softmax', name='gesture')(x)
         synth_prms = layers.Dense(synth_parameters_dim, name='synth_prms')(x)
-        audio_ftrs = layers.Dense(audio_features_dim, name='audio_ftrs')(x)
 
-        outputs = [ gesture, synth_prms, audio_ftrs ]
+        outputs = [ gesture, synth_prms ]
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
         
         losses = { 'gesture': 'sparse_categorical_crossentropy',
-                   'synth_prms': tf.keras.losses.Huber(),
-                   'audio_ftrs': tf.keras.losses.Huber() }
+                   'synth_prms': tf.keras.losses.Huber() }
         
         metrics = { 'gesture': 'accuracy',
-                    'synth_prms': 'mse',
-                    'audio_ftrs': 'mse' }
+                    'synth_prms': 'mse' }
                     
         self.model.compile(loss=losses, optimizer='adam', metrics=metrics)
 
@@ -77,9 +74,10 @@ class GestureMapper:
         self.epochs = epochs
         self.n_augments = n_augments
         self.validation_split = validation_split
+        self.history_length = history_length
 
         
-    def add_datapoint(self, x_gesture, y_synth_prms, y_audio_ftrs):
+    def add_datapoint(self, x_gesture, y_synth_prms):
         # Data: timesteps x channels.
         if len(x_gesture.shape) == 1:
             x_gesture = x_gesture.reshape(-1,1)
@@ -87,7 +85,7 @@ class GestureMapper:
         if len(x_gesture) < 10:
             warnings.warn('Datapoints must have a length of at least 10, discarding.')
         else:
-            self.data.append(( x_gesture, y_synth_prms, y_audio_ftrs ))
+            self.data.append(( x_gesture, y_synth_prms ))
 
 
     def _pad(self, X):
@@ -96,39 +94,53 @@ class GestureMapper:
         padded = [ pad(x.T, maxlen=max_len, dtype=np.float, padding='post', value=MASK_VALUE).T for x in X ]
 
         return np.stack(padded)
-        
-            
+
+    def _roll(self, X):
+        out = []
+
+        for x in X:
+            # Pads the array with MASK_VALUE along the first axis.
+            padded = np.pad(x, pad_width=((self.history_length-1, 0), (0,0)), constant_values=MASK_VALUE)
+            # Cycles over the padded array.
+            for i in np.arange(len(x)):
+                window = np.roll(padded, -i, axis=0)[:self.history_length]
+                out.append(window)
+
+        out = np.stack(out)
+
+        return out
+
+    
     def _data_augmentation(self):
+        x_gesture, y_synth_prms = zip(*self.data)
 
-        x_gesture, y_synth_prms, y_audio_ftrs = zip(*self.data)
-
-        y_gesture = np.arange(len(x_gesture))
+        y_gesture = [ np.ones(len(x))*i for i,x in enumerate(x_gesture) ]
+        y_gesture = np.concatenate(y_gesture)
         y_gesture = np.repeat(y_gesture, self.n_augments, axis=0)
 
+        y_synth_prms = np.concatenate(y_synth_prms, axis=0)
         y_synth_prms = np.repeat(y_synth_prms, self.n_augments, axis=0)
+
+        x_rolled = self._roll(x_gesture)
         
-        y_audio_ftrs = np.repeat(y_audio_ftrs, self.n_augments, axis=0)
-                
-        x_padded = self._pad(x_gesture)
-        
-        x_repeated = np.repeat(x_padded, self.n_augments, axis=0)
+        x_repeated = np.repeat(x_rolled, self.n_augments, axis=0)
         mask = np.where(x_repeated == MASK_VALUE)
 
         x_noised = x_repeated + np.random.normal(0, self.noise_std, size=x_repeated.shape)
         x_noised[mask] = MASK_VALUE
 
-        return shuffle(x_noised, y_gesture, y_synth_prms, y_audio_ftrs)
+        return shuffle(x_noised, y_gesture, y_synth_prms)
 
     
     def train(self):
-        x_gesture, y_gesture, y_synth_prms, y_audio_ftrs = self._data_augmentation()
+        x_gesture, y_gesture, y_synth_prms = self._data_augmentation()
 
         x = x_gesture
         y = { 'gesture': y_gesture,
-              'synth_prms': y_synth_prms,
-              'audio_ftrs': y_audio_ftrs }
+              'synth_prms': y_synth_prms }
 
         self.model.fit(x, y, epochs=self.epochs, validation_split=self.validation_split, verbose=True)
+
         
     def predict(self, x):
         return self.model.predict(x)

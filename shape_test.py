@@ -24,18 +24,20 @@ shape:main test
 
 import unittest
 import multiprocessing as mp
-import time
+
+import numpy as np
 
 from core.faux_gestures import trajectories
+from core.candidate import create
 import data.communicator as cm
 import shape
+from utils.constants import ADDITIVE
 
 class ShapeTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-
-        cls.comm = cm.Communicator([ cm.LEARN_PUSH, cm.PLAY_PUSH, cm.DEATH_PUB, cm.PREFERENCES_REP ])
+        cls.comm = cm.Communicator([ cm.LEARN_PUSH, cm.PLAY_REQ, cm.DEATH_PUB, cm.LEARN_COUNT_SUB ])
         
         cls.processes = []
         cls.processes.append(mp.Process(target=shape.run))
@@ -43,15 +45,23 @@ class ShapeTest(unittest.TestCase):
         for p in cls.processes:
             p.start()
 
-
-    def test_learn(self):
-        for gesture in trajectories:
-            self.comm.LEARN_PUSH_SEND(gesture)
-
-            self.comm.PREFERENCES_REP_RECV()
-            time.sleep(5) # To emulate listening to a 3 second sound, and providing feedback
-            self.comm.PREFERENCES_REP_SEND(True)
             
+    def test_learn_predict(self):
+        n = 3
+        
+        for gesture in trajectories[:n]:
+            self.comm.LEARN_PUSH_SEND([ gesture, create(gesture, ADDITIVE.n_parameters) ])
+
+        for socket, msg in next(self.comm):
+            if socket == cm.LEARN_COUNT_SUB:
+                if msg == n:
+                    break
+
+        for i, gesture in enumerate(trajectories[:n]):
+            self.comm.PLAY_REQ_SEND(gesture)
+            gesture_prediction, synth_prms_prediction = self.comm.PLAY_REQ_RECV()
+            self.assertTrue(i == np.argmax(gesture_prediction))
+
             
     @classmethod
     def tearDownClass(cls):

@@ -36,14 +36,15 @@ push_pull = ['PUSH', 'PULL']
 # will dynamically create function handles and do all the necessary registering.
 ports = {
     'LEARN': (7000, push_pull),
-    'PLAY': (7001, push_pull),
+    'PLAY': (7001, req_rep),
     'TRAIN': (7002, push_pull),
     'PREFERENCES': (7003, req_rep),
     'MODEL': (7004, push_pull),
     'READY': (7005, req_rep),
+    'LEARN_COUNT': (7006, pub_sub),
     # 'GESTURE': (7005, push_pull),
     # 'LEARNING_MODE': (7006, push_pull),
-    'SYNTH': (7007, req_rep),
+    'SYNTH': (8008, req_rep),
     'DEATH': (6666, pub_sub) }
 
 # Enables LEARN_PUSH_SEND, LEARN_PUSH_RECV, SYNTH_REQ, SYNTH_REP, etc.

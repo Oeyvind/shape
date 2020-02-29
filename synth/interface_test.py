@@ -25,15 +25,13 @@ shape:synth ØMQ wrapper test file
 import unittest
 import multiprocessing as mp
 import time
-import random
 
-import numpy as np
-from sklearn.preprocessing import minmax_scale
 import matplotlib.pyplot as plt
 
 from synth.interface import listen, SYNTH_READY
 import data.communicator as cm
 from core.faux_gestures import trajectories
+from core.candidate import create, scale_and_separate
 from utils.constants import ADDITIVE, SUBMONO, SINE, PARTIKKEL
 
 class InterfaceTest(unittest.TestCase):
@@ -51,8 +49,7 @@ class InterfaceTest(unittest.TestCase):
         names = [ 'zero', 'circle', 'line', 'r_line', 'sine', 'mega_sine', 'spiral', 'tanh', 'random' ]
         for name, trajectory in zip(names, trajectories):
             # Range is -1,1 for input signals, scale it to 0,1.
-            scaled = (trajectory + 1)/2
-            X, Y = scaled.T
+            X, Y = scale_and_separate(trajectory)
 
             plt.plot(X,Y)
             plt.xlim(-.1, 1.1)
@@ -61,20 +58,9 @@ class InterfaceTest(unittest.TestCase):
             plt.savefig(gesture_plot, dpi=300)
             plt.clf()
 
-            parameters = []
-
             n = 8
 
-            for _ in range(n):
-                root = np.random.rand( 1, n_parameters )
-                root = np.repeat(root, scaled.shape[0], axis=0)
-
-                for _param in root.T:
-                    _param += random.choice([X,Y])*np.random.rand()
-
-                root = np.clip(root, 0, 1)
-
-                parameters.append(root)
+            parameters = [ create(trajectory, n_parameters) for _ in range(n) ]
 
             self.comm.SYNTH_REQ_SEND([ parameters, instrument, X, Y, True ])
 
@@ -82,13 +68,15 @@ class InterfaceTest(unittest.TestCase):
             sounds = sorted(sounds, key=lambda L: L[1])
 
             title = '{}:{}'.format(instrument, name)
-            html = '<html><title>{}</title><body><h1>{}</h1><img src="_{}.png" width="50%"><hr>'.format(title,
-                                                                                                        title,
-                                                                                                        name)
+            html = ('<html><title>{}</title><body><h1>{}</h1><img src="_{}.png" width="50%">'+
+                    '<hr>').format(title, title, name)
 
             for filename, similarity in sounds:
-                html += '<table><tr><td><b> {} </b><br><br> <audio controls> <source src="{}" type="audio/wav"> </audio></td>'.format(similarity, filename)
-                html += '<td><img src="{}.png" width="60%"> </td></tr></table> <hr>'.format(filename)
+                html += ('<table><tr><td><b> {} </b><br><br> <audio controls>'+
+                         '<source src="{}" type="audio/wav"> </audio></td>'+
+                         '<td><img src="{}.png" width="60%"> </td></tr></table>'+
+                         '<hr>').format(similarity, filename, filename)
+
 
             html += '</body></html>'
 

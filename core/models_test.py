@@ -34,31 +34,63 @@ import matplotlib.pyplot as plt
 
 from core.models import GestureMapper
 from core.faux_gestures import trajectories
+from utils.constants import ADDITIVE, MASK_VALUE
+from core.candidate import create
 
 class GestureMapperTest(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
-        input_dim = 2
-        n_classes = 10
-        synth_parameters_dim = 10
-        audio_features_dim = 12
-        cls.model = GestureMapper(input_dim, n_classes, synth_parameters_dim, audio_features_dim)
+        input_dim = trajectories[0].shape[1]
+        n_classes = len(trajectories)
+        synth_parameters_dim = ADDITIVE.n_parameters
+        cls.model = GestureMapper(input_dim, n_classes, synth_parameters_dim)
         
         for x in trajectories:
-            cls.model.add_datapoint(x, np.random.rand(synth_parameters_dim), np.random.rand(audio_features_dim))
+            cls.model.add_datapoint(x, create(x, synth_parameters_dim))
 
     def test_add_datapoint(self):
-        self.assertWarns(UserWarning, self.model.add_datapoint, np.random.random(5), None, None)
+        self.assertWarns(UserWarning, self.model.add_datapoint, np.random.random(5), None)
 
 
     def test_train_predict(self):
         self.model.train()
 
-        gesture_predictions, _, _ = self.model.predict(self.model._pad(trajectories))
-        self.assertTrue(all(np.argmax(gesture_predictions, axis=1) == range(len(trajectories))))
+        Y = [ np.ones(len(x))*i for i,x in enumerate(trajectories) ]
+        Y = np.concatenate(Y)
+        
+        gesture_predictions, _ = self.model.predict(self.model._roll(trajectories))
+
+        result = np.mean(np.argmax(gesture_predictions, axis=1) == Y)
+        print('Prediction result:', result)
+        # Test that we are correct with trajectory classificaiton at least 95% of the time.
+        self.assertTrue(result > .95)
 
 
+    def test_roll(self):
+        x = np.zeros((10,2))
+        x[:,0] = np.arange(len(x))
+
+        rolled = self.model._roll([x])
+
+        for i, _rld in enumerate(rolled):
+            
+            if i < self.model.history_length - 1:
+                mask_end = self.model.history_length - 1 - i
+                # Check that the maskings are correct.
+                self.assertTrue(np.all(_rld[:mask_end] == MASK_VALUE))
+
+                x_start = 0
+                x_end = i+1
+            else:
+                mask_end = 0
+                x_start = i - self.model.history_length + 1
+                x_end = x_start + self.model.history_length
+
+            # Check that the rolls are correct.                
+            self.assertTrue(np.all(_rld[mask_end:] == x[x_start:x_end]))
+
+        
     # def test_data_augmentation(self):
     #     noised = self.model._data_augmentation()
 
