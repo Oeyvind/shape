@@ -18,23 +18,23 @@
 #    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
-
 """
-OSC client test with mouse/trackpad
+ØMK server test
 """
 
-import time
-from pythonosc import udp_client
-from pynput.mouse import Button, Controller
+import sys
+import zmq
 
-send_port = 8902
-osc_client = udp_client.SimpleUDPClient("127.0.0.1", send_port)  # OSC Client for sending messages.
+#  Socket to talk to server
+context = zmq.Context()
+socket = context.socket(zmq.SUB)
 
-mouse = Controller()
+print("Getting data from mouse serverâ€¦")
+socket.connect("tcp://localhost:8802")
+
+socket.setsockopt_string(zmq.SUBSCRIBE, "mouse")
+
 while True:
-  msg = []
-  msg.append(mouse.position[0]*(1/2000.0)) # normalize mouse data and send
-  msg.append(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
-  print(msg)
-  osc_client.send_message("/mouse", msg)
-  time.sleep(1.0/25)
+  string = socket.recv_string()
+  address, x, y = string.split()
+  print(address, x, y)

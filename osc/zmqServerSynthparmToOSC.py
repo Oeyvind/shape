@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 #
 #    Copyright 2020 Oeyvind Brandtsegg and Axel Tidemann
 #
@@ -18,23 +18,34 @@
 #    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
-
 """
-OSC client test with mouse/trackpad
+ZMK server, receive synth parameters and send them over OSC to synth
 """
 
-import time
+import sys
+import zmq
+from pythonosc.dispatcher import Dispatcher
+from pythonosc import osc_server
 from pythonosc import udp_client
-from pynput.mouse import Button, Controller
 
-send_port = 8902
+#  Socket to get synth parms over ZMK
+context = zmq.Context()
+socket = context.socket(zmq.SUB)
+print("Getting synthesis parameters")
+socket.connect("tcp://localhost:8803")
+socket.setsockopt_string(zmq.SUBSCRIBE, "synthparm")
+
+# OSC client
+send_port = 8903
 osc_client = udp_client.SimpleUDPClient("127.0.0.1", send_port)  # OSC Client for sending messages.
 
-mouse = Controller()
+def send_to_synth(parameters):
+    print(parameters)
+    osc_client.send_message("/shapesynth", parameters)
+
 while True:
-  msg = []
-  msg.append(mouse.position[0]*(1/2000.0)) # normalize mouse data and send
-  msg.append(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
-  print(msg)
-  osc_client.send_message("/mouse", msg)
-  time.sleep(1.0/25)
+    data = socket.recv_string()
+    parameters = data.split()[1:]
+    for i in range(len(parameters)):
+        parameters[i] = float(parameters[i])
+    send_to_synth(parameters)

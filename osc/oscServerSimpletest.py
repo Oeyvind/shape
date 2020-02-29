@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 #
 #    Copyright 2020 Oeyvind Brandtsegg and Axel Tidemann
 #
@@ -18,23 +18,25 @@
 #    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
-
 """
-OSC client test with mouse/trackpad
+OSC server test
 """
+from pythonosc.dispatcher import Dispatcher
+from pythonosc import osc_server
 
-import time
-from pythonosc import udp_client
-from pynput.mouse import Button, Controller
+def receive(address, *args):
+    print(f"{address}: {args}")
 
-send_port = 8902
-osc_client = udp_client.SimpleUDPClient("127.0.0.1", send_port)  # OSC Client for sending messages.
+def default_handler(address, *args):
+    print(f"DEFAULT {address}: {args}")
 
-mouse = Controller()
-while True:
-  msg = []
-  msg.append(mouse.position[0]*(1/2000.0)) # normalize mouse data and send
-  msg.append(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
-  print(msg)
-  osc_client.send_message("/mouse", msg)
-  time.sleep(1.0/25)
+dispatcher = Dispatcher()
+dispatcher.map("/mouse", receive)
+dispatcher.set_default_handler(default_handler)
+
+ip = "127.0.0.1"
+port = 8902
+
+server = osc_server.ThreadingOSCUDPServer((ip, port), dispatcher)
+print("Serving on {}".format(server.server_address))
+server.serve_forever()  # Blocks forever

@@ -20,21 +20,24 @@
 
 
 """
-OSC client test with mouse/trackpad
+ØMK client test with mouse/trackpad
 """
 
+import zmq
+from random import randrange
 import time
-from pythonosc import udp_client
 from pynput.mouse import Button, Controller
 
-send_port = 8902
-osc_client = udp_client.SimpleUDPClient("127.0.0.1", send_port)  # OSC Client for sending messages.
+context = zmq.Context()
+socket = context.socket(zmq.PUB)
+socket.bind("tcp://*:8802")
 
 mouse = Controller()
+
 while True:
-  msg = []
-  msg.append(mouse.position[0]*(1/2000.0)) # normalize mouse data and send
-  msg.append(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
-  print(msg)
-  osc_client.send_message("/mouse", msg)
-  time.sleep(1.0/25)
+    msg = "mouse "
+    msg += str(mouse.position[0]*(1/2000.0)) + " " # normalize mouse data and send
+    msg += str(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
+    print(msg)
+    socket.send_string(msg)
+    time.sleep(1.0/25)

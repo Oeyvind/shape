@@ -1,3 +1,21 @@
+/*
+#    Copyright 2020 Oeyvind Brandtsegg and Axel Tidemann
+#
+#    This file is part of the Shape package
+#
+#    The Shape package is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License version 3
+#    as published by the Free Software Foundation.
+#
+#    The Shape is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with The Shape package.
+#    If not, see <http://www.gnu.org/licenses/>.
+*/
 <Cabbage>
 
 form size(401, 415), caption("Shape"), pluginID("shap")
@@ -26,6 +44,8 @@ csoundoutput bounds(0,215,401,200)
 	ksmps 	= 128
 	nchnls 	= 2
 	0dbfs	= 1
+
+gi_osc_handle OSCinit 8903 ; OSC receive address
 
 #include "ftables.inc"
 
@@ -69,7 +89,6 @@ endif
 xout kval
 endop
 
-gi_osc_handle OSCinit 8101
 
 ;gui control
 instr 1
@@ -142,7 +161,9 @@ k24 init 0
 k25 init 0
 
 nxt_val:
+
 kk1 OSClisten gi_osc_handle, "/shapesynth", "fffffffffffffffffffffffff", k1,k2,k3,k4,k5,k6,k7,k8,k9,k10,k11,k12,k13,k14,k15,k16,k17,k18,k19,k20,k21,k22,k23,k24,k25
+
 tablew k1, 0, giParm_values
 tablew k2, 1, giParm_values
 tablew k3, 2, giParm_values
