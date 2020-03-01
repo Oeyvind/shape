@@ -45,7 +45,7 @@ ports = {
     'SENSOR': (7007, push_pull),
     'SYNTH_PLAY': (7008, push_pull),
     # 'GESTURE': (7005, push_pull),
-    'LEARNING_MODE': (7009, req_rep),
+    'LEARNING_MODE': (7009, push_pull),
     'SYNTH': (8008, req_rep),
     'DEATH': (6666, pub_sub) }
 

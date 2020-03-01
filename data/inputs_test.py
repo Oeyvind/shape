@@ -24,6 +24,7 @@ shape:inputs test
 
 import unittest
 import multiprocessing as mp
+import time
 
 import numpy as np
 
@@ -35,7 +36,7 @@ class ShapeTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.comm = cm.Communicator([ cm.SENSOR_PUSH, cm.LEARNING_MODE_REQ,
+        cls.comm = cm.Communicator([ cm.SENSOR_PUSH, cm.LEARNING_MODE_PUSH,
                                      cm.DEATH_PUB ])
         
         cls.processes = []
@@ -49,15 +50,15 @@ class ShapeTest(unittest.TestCase):
         n = 3
 
         for gesture in trajectories[:n]:
-            self.comm.LEARNING_MODE_REQ_SEND(True)
-            print('Confirmed record mode:', self.comm.LEARNING_MODE_REQ_RECV())
+            self.comm.LEARNING_MODE_PUSH_SEND(data.inputs.REC)
+            time.sleep(1)
             
             for sample in gesture:
                 self.comm.SENSOR_PUSH_SEND(sample)
-                
-            self.comm.LEARNING_MODE_REQ_SEND(False)
-            print('Confirmed record mode:', self.comm.LEARNING_MODE_REQ_RECV())
-            
+
+            time.sleep(1)
+            self.comm.LEARNING_MODE_PUSH_SEND(data.inputs.CHILL)
+            time.sleep(10)
             
     @classmethod
     def tearDownClass(cls):

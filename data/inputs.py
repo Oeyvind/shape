@@ -25,28 +25,38 @@ Handles gesture input and learning mode input.
 """
 
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
 
 import data.communicator as cm
 from core.candidate import create, scale_and_separate
 from utils.constants import ADDITIVE, PROJECT_ROOT, HISTORY_LENGTH
+
+REC = 'record'
+PLAY = 'play'
+CHILL = 'chill'
 
 GESTURE_READY = 'Gesture process ready'
 LEARNING_MODE_READY = 'Learning mode process ready'
 PREFERENCES_READY = 'Preferences process ready'
 
 def run(examples=10, select_lowest_mse=False):
-    comm = cm.Communicator([ cm.SENSOR_PULL, cm.LEARNING_MODE_REP,
+    comm = cm.Communicator([ cm.SENSOR_PULL, cm.LEARNING_MODE_PULL,
                              cm.LEARN_REQ, cm.PLAY_REQ, cm.SYNTH_REQ,
                              cm.SYNTH_PLAY_PUSH ])
     
-    record = False
+    status = CHILL
     recorder = []
     
     for socket, msg in next(comm):
         if socket == cm.SENSOR_PULL:
+            if status == CHILL:
+                continue
+            
             recorder.append(msg)
             
-            if not record:
+            if status == PLAY:
                 gesture = np.stack(recorder)
                 gesture = gesture[-HISTORY_LENGTH:]
                 print('Send to play', gesture.shape)
@@ -60,14 +70,20 @@ def run(examples=10, select_lowest_mse=False):
 
                     comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
-        if socket == cm.LEARNING_MODE_REP:
-            record = msg
-
-            if len(recorder) and not record:
-                print('Done recording, generating suggestions')
+        if socket == cm.LEARNING_MODE_PULL:
+            if len(recorder) and status == REC and msg in [PLAY, CHILL]:
+                print('Recorded {} samples, making suggestions'.format(len(recorder)))
                 gesture = np.stack(recorder)
 
                 X,Y = scale_and_separate(gesture)
+
+                plt.plot(X,Y)
+                plt.xlim(-.1, 1.1)
+                plt.ylim(-.1, 1.1)
+                gesture_plot = '{}/sounds/_{}.png'.format(PROJECT_ROOT, ADDITIVE.name)
+                plt.savefig(gesture_plot, dpi=300)
+                plt.clf()
+                
                 parameters = [ create(gesture, ADDITIVE.n_parameters) for _ in
                                range(examples) ]
 
@@ -86,7 +102,7 @@ def run(examples=10, select_lowest_mse=False):
 
                 for i, (filename, similarity, _) in enumerate(sounds):
                     html += ('<table><tr><td><b>Candidate {}<br>'
-                             'Similiarity: {} </b><br><br> <audio controls>'
+                             'Similarity: {} </b><br><br> <audio controls>'
                              '<source src="{}" type="audio/wav"> </audio></td>'
                              '<td><img src="{}.png" width="60%"> </td></tr></table>'
                              '<hr>').format(i, similarity, filename, filename)
@@ -103,18 +119,21 @@ def run(examples=10, select_lowest_mse=False):
                 else:
                     favourite = 0
 
-                print('You chose {}, similarity {}.'.format(favourite,
-                                                            sounds[favourite][1]))
+                if favourite > -1:
+                    print('You chose {}, similarity {}.'.format(favourite,
+                                                                sounds[favourite][1]))
 
-                synth_parameters = sounds[favourite][2]
+                    synth_parameters = sounds[favourite][2]
 
-                comm.LEARN_REQ_SEND([ gesture, synth_parameters ])
-                comm.LEARN_REQ_RECV()
+                    comm.LEARN_REQ_SEND([ gesture, synth_parameters ])
+                    comm.LEARN_REQ_RECV()
+                else:
+                    print('None selected, continue.')
 
-                
+            status = msg
+            print('STATUS:', status)
 
             recorder = []
-            comm.LEARNING_MODE_REP_SEND(msg)
 
 
 if __name__ == '__main__':
