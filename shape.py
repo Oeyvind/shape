@@ -36,7 +36,7 @@ import synth.interface
 
 def run(n_classes=10, noise_std=.1):
     comm = cm.Communicator([ cm.READY_REP, cm.TRAIN_PUSH, cm.SYNTH_REQ,
-                             cm.PLAY_REP, cm.LEARN_PULL, cm.MODEL_PULL ])
+                             cm.PLAY_REP, cm.MODEL_PULL, cm.LEARN_REP ])
 
     processes = []
     processes.append(mp.Process(target=core.train, args=(n_classes,False,)))
@@ -59,12 +59,21 @@ def run(n_classes=10, noise_std=.1):
             model = load_model(msg)
             print('Model loaded in', np.around(time.time()-t0, decimals=2), 'seconds')
 
-        if socket == cm.LEARN_PULL:
-            comm.TRAIN_PUSH_SEND(msg)
+        # Figure out the networking reasons why PUSH/PULL gets address in use error.
+        # if socket == cm.LEARN_PULL:
+        #     comm.TRAIN_PUSH_SEND(msg)
 
         if socket == cm.PLAY_REP:
-            gesture_prediction, synth_prms_prediction = model.predict(msg[np.newaxis,:])
-            comm.PLAY_REP_SEND([ gesture_prediction, synth_prms_prediction ])
+            try:
+                gesture_prediction, synth_prms_prediction = model.predict(msg[np.newaxis,:])
+                comm.PLAY_REP_SEND([ gesture_prediction, synth_prms_prediction ])
+            except AttributeError as e:
+                print('Model not ready')
+                comm.PLAY_REP_SEND(None)
+
+        if socket == cm.LEARN_REP:
+            comm.TRAIN_PUSH_SEND(msg)
+            comm.LEARN_REP_SEND(True)
 
     for p in processes:
         p.join()

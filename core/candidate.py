@@ -20,7 +20,8 @@
 
 """
 Creates candidate for mapping of gestures to synth parameters. 
-The trajectory is assumed to be in the range of [-1,1] on all axes.
+The trajectory is assumed to be in the range of [-1,1] on all axes,
+but it will return synth parameters in the range [0,1].
 """
 
 import random
