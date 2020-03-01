@@ -36,7 +36,8 @@ PREFERENCES_READY = 'Preferences process ready'
 
 def run(examples=10, select_lowest_mse=False):
     comm = cm.Communicator([ cm.SENSOR_PULL, cm.LEARNING_MODE_REP,
-                             cm.LEARN_REQ, cm.PLAY_REQ, cm.SYNTH_REQ ])
+                             cm.LEARN_REQ, cm.PLAY_REQ, cm.SYNTH_REQ,
+                             cm.SYNTH_PLAY_PUSH ])
     
     record = False
     recorder = []
@@ -54,7 +55,7 @@ def run(examples=10, select_lowest_mse=False):
                 gesture_prediction, synth_prms_prediction = comm.PLAY_REQ_RECV()
                 print('Predicted gesture:', np.argmax(gesture_prediction))
 
-                
+                comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
         if socket == cm.LEARNING_MODE_REP:
             record = msg
