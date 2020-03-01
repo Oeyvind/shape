@@ -52,10 +52,13 @@ def run(examples=10, select_lowest_mse=False):
                 print('Send to play', gesture.shape)
 
                 comm.PLAY_REQ_SEND(gesture)
-                gesture_prediction, synth_prms_prediction = comm.PLAY_REQ_RECV()
-                print('Predicted gesture:', np.argmax(gesture_prediction))
+                response = comm.PLAY_REQ_RECV()
 
-                comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
+                if response is not None:
+                    gesture_prediction, synth_prms_prediction = response
+                    print('Predicted gesture:', np.argmax(gesture_prediction))
+
+                    comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
         if socket == cm.LEARNING_MODE_REP:
             record = msg
