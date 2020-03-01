@@ -36,7 +36,7 @@ send_port = 8903
 osc_client = udp_client.SimpleUDPClient("127.0.0.1", send_port)  # OSC Client for sending messages.
 
 def send_to_synth(parameters):
-    print(parameters)
+    print(parameters[0])
     #osc_client.send_message("/shapesynth", parameters)
 
 while True:
