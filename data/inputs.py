@@ -54,8 +54,9 @@ def run(examples=10, select_lowest_mse=False):
         if socket == cm.SENSOR_PULL:
             if status == CHILL:
                 continue
-            
-            recorder.append(msg)
+
+            i = msg[-1]
+            recorder.append(msg[:-1])
             
             if status == PLAY and len(recorder) > 10:
                 gesture = np.stack(recorder)[:HISTORY_LENGTH]
@@ -70,8 +71,7 @@ def run(examples=10, select_lowest_mse=False):
 
                 if response is not None:
                     gesture_prediction, synth_prms_prediction = response
-                    print('Predicted gesture:', np.argmax(gesture_prediction),
-                          synth_prms_prediction[0,0])
+                    print('Predicted gesture:', np.argmax(gesture_prediction), i)
                     comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
         if socket == cm.LEARNING_MODE_PULL:
