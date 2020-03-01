@@ -25,26 +25,26 @@ Keyboard control of record enable via ZMK
 
 from pynput import keyboard
 import data.communicator as cm
-comm = cm.Communicator([cm.LEARNING_MODE_REQ])
+comm = cm.Communicator([cm.LEARNING_MODE_PUSH])
+from data.inputs import REC, PLAY, CHILL
 
 def on_press(key):
     try:
-        if key == keyboard.Key.space: #space
-            record_enable(1)
-        elif '{0}'.format(key) == "<96>": #zero
-            record_enable(0)
-        elif key.char == ('0'):
-            record_enable(0)
+        if key.char == ('r'):
+            set_status(REC)
+        if key.char == ('p'):
+            set_status(PLAY)
+        if key.char == ('c'):
+            set_status(CHILL)
     except AttributeError:
         print('Key not used {0}'.format(key))
 
 def on_release(key):
     pass
 
-def record_enable(record_flag):
-    comm.LEARNING_MODE_REQ_SEND(record_flag)
-    comm.LEARNING_MODE_REQ_RECV()
-    print("\nGesture recording:", ["DISABLE","ENABLE"][record_flag])
+def set_status(status):
+    comm.LEARNING_MODE_PUSH_SEND(status)
+    print("\nInput status:", status)
 
 listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 listener.start()
