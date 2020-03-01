@@ -38,7 +38,7 @@ SYNTH_READY = 'Synth interface process ready'
 def play_and_analyze(parameters, instrument, X, Y, plot):
     
     duration = parameters.shape[0]/GESTURE_SAMPLING_FREQUENCY
-    my_synth = Synth(duration, instrument, None, GESTURE_SAMPLING_FREQUENCY) # parameters set below
+    my_synth = Synth(duration, instrument, None, GESTURE_SAMPLING_FREQUENCY)
         
     output_analysis = []
 
@@ -82,9 +82,9 @@ def play_and_analyze(parameters, instrument, X, Y, plot):
                 color = 'm'
 
             i,j = plot_coords[k]
-            audio_features = ['amp', 'env_crest', 'pitch', 'centroid', 'flatness', 's_crest', 'flux', 'mfcc_diff']
-            axs[i,j].plot(x, feature, color=color,
-                          label=audio_features[k])
+            audio_features = ['amp', 'env_crest', 'pitch', 'centroid',
+                              'flatness', 's_crest', 'flux', 'mfcc_diff']
+            axs[i,j].plot(x, feature, color=color, label=audio_features[k])
             axs[i,j].legend(loc='upper right')
             axs[i,j].set_ylim(0,1)
 

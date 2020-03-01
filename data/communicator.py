@@ -43,13 +43,13 @@ ports = {
     'READY': (7005, req_rep),
     'LEARN_COUNT': (7006, pub_sub),
     'SENSOR': (7007, pub_sub),
-    'SYNTH_PLAY': (7008, pub_sub),
+    'SYNTH_PLAY': (7008, push_pull),
     # 'GESTURE': (7005, push_pull),
     'LEARNING_MODE': (7009, req_rep),
     'SYNTH': (8008, req_rep),
     'DEATH': (6666, pub_sub) }
 
-# Enables LEARN_PUSH_SEND, LEARN_PUSH_RECV, SYNTH_REQ, SYNTH_REP, etc.
+# Enables LEARN_PUSH_SEND, LEARN_PUSH_RECV, SYNTH_REQ_SEND, SYNTH_REP_RECV, etc.
 module = sys.modules[__name__]
 for name, (_, socket_types) in ports.items():
     for soc_typ in socket_types:
