@@ -28,10 +28,12 @@ from pynput.mouse import Button, Controller
 import host_io.zmqKeyboard as kbd # keyboard control of record enable/disable
 import data.communicator as cm
 comm = cm.Communicator([cm.SENSOR_PUSH])
+from utils.constants import GESTURE_SAMPLING_FREQUENCY
 
 mouse = Controller()
 while True:
     msg = [mouse.position[0]*(1/2000.0), mouse.position[1]*(1/1000.0)] # normalize mouse data and send
-    print('\r'+str(msg),end='')
+    #print('\r'+str(msg),end='')
+    print(msg)
     comm.SENSOR_PUSH_SEND(msg)
-    time.sleep(1.0/25)
+    time.sleep(1.0/GESTURE_SAMPLING_FREQUENCY)
