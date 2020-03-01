@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 
 import data.communicator as cm
 from core.candidate import create, scale_and_separate
-from utils.constants import ADDITIVE, PROJECT_ROOT, HISTORY_LENGTH
+from utils.constants import ADDITIVE, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALUE
 
 REC = 'record'
 PLAY = 'play'
@@ -59,6 +59,12 @@ def run(examples=10, select_lowest_mse=False):
             
             if status == PLAY and len(recorder) > 10:
                 gesture = np.stack(recorder)[:HISTORY_LENGTH]
+
+                if len(gesture) < HISTORY_LENGTH:
+                    gesture = np.pad(gesture,
+                                     pad_width=((HISTORY_LENGTH-len(gesture),0), (0,0)),
+                                     constant_values=MASK_VALUE)
+                
                 print('Send to play', gesture.shape)
 
                 comm.PLAY_REQ_SEND(gesture)
@@ -75,7 +81,6 @@ def run(examples=10, select_lowest_mse=False):
                 print('Recorded {} samples, making suggestions'.format(len(recorder)))
                 gesture = np.stack(recorder)
 
-                #X,Y = scale_and_separate(gesture)
                 X,Y = gesture.T
 
                 plt.plot(X,Y)

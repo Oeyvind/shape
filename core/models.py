@@ -101,7 +101,8 @@ class GestureMapper:
 
         for x in X:
             # Pads the array with MASK_VALUE along the first axis.
-            padded = np.pad(x, pad_width=((self.history_length-1, 0), (0,0)), constant_values=MASK_VALUE)
+            padded = np.pad(x, pad_width=((self.history_length-1, 0), (0,0)),
+                            constant_values=MASK_VALUE)
             # Cycles over the padded array.
             for i in np.arange(len(x)):
                 window = np.roll(padded, -i, axis=0)[:self.history_length]
