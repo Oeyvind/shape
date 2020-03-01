@@ -24,7 +24,7 @@ shape:io
 Handles gesture input and learning mode input.
 """
 
-from collections
+from collections import deque
 
 import numpy as np
 import matplotlib
