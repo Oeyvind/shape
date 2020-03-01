@@ -55,10 +55,6 @@ def run(n_classes=10, noise_std=.1):
             model = load_model(msg)
             print('Model loaded in', np.around(time.time()-t0, decimals=2), 'seconds')
 
-        # Figure out the networking reasons why PUSH/PULL gets address in use error.
-        # if socket == cm.LEARN_PULL:
-        #     comm.TRAIN_PUSH_SEND(msg)
-
         if socket == cm.PLAY_REP:
             try:
                 gesture = msg[np.newaxis,:]
