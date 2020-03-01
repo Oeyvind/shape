@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 #
 #    Copyright 2020 Oeyvind Brandtsegg and Axel Tidemann
 #
@@ -20,24 +20,18 @@
 
 
 """
-ØMK client test with mouse/trackpad
+Mouse gesture send over ZMK
 """
 
-import zmq
-from random import randrange
 import time
 from pynput.mouse import Button, Controller
-
-context = zmq.Context()
-socket = context.socket(zmq.PUB)
-socket.bind("tcp://*:8802")
+import host_io.zmqKeyboard as kbd # keyboard control of record enable/disable
+import data.communicator as cm
+comm = cm.Communicator([cm.SENSOR_PUB])
 
 mouse = Controller()
-
 while True:
-    msg = "mouse "
-    msg += str(mouse.position[0]*(1/2000.0)) + " " # normalize mouse data and send
-    msg += str(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
-    print(msg)
-    socket.send_string(msg)
+    msg = [mouse.position[0]*(1/2000.0), mouse.position[1]*(1/1000.0)] # normalize mouse data and send
+    print('\r'+str(msg),end='')
+    comm.SENSOR_PUB_SEND(msg)
     time.sleep(1.0/25)

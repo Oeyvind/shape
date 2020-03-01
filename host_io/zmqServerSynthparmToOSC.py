@@ -23,17 +23,12 @@ ZMK server, receive synth parameters and send them over OSC to synth
 """
 
 import sys
-import zmq
 from pythonosc.dispatcher import Dispatcher
 from pythonosc import osc_server
 from pythonosc import udp_client
 
-#  Socket to get synth parms over ZMK
-context = zmq.Context()
-socket = context.socket(zmq.SUB)
-print("Getting synthesis parameters")
-socket.connect("tcp://localhost:8803")
-socket.setsockopt_string(zmq.SUBSCRIBE, "synthparm")
+import data.communicator as cm
+comm = cm.Communicator([cm.SYNTH_PLAY_SUB])
 
 # OSC client
 send_port = 8903
@@ -44,8 +39,5 @@ def send_to_synth(parameters):
     osc_client.send_message("/shapesynth", parameters)
 
 while True:
-    data = socket.recv_string()
-    parameters = data.split()[1:]
-    for i in range(len(parameters)):
-        parameters[i] = float(parameters[i])
+    parameters = comm.PLAY_REQ_RECV()
     send_to_synth(parameters)
