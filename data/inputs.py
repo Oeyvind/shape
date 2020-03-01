@@ -58,8 +58,8 @@ def run(examples=10, select_lowest_mse=False):
             i = msg[-1]
             recorder.append(msg[:-1])
             
-            if status == PLAY and len(recorder) > 10:
-                gesture = np.stack(recorder)[:HISTORY_LENGTH]
+            if status == PLAY and len(recorder):
+                gesture = np.stack(recorder)[-HISTORY_LENGTH:]
 
                 if len(gesture) < HISTORY_LENGTH:
                     gesture = np.pad(gesture,
