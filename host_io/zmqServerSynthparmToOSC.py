@@ -28,7 +28,7 @@ from pythonosc import osc_server
 from pythonosc import udp_client
 
 import data.communicator as cm
-comm = cm.Communicator([cm.SYNTH_PLAY_SUB])
+comm = cm.Communicator([cm.SYNTH_PLAY_PULL])
 
 # OSC client
 send_port = 8903

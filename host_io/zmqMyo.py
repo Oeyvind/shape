@@ -23,11 +23,12 @@
 Myo-to-ZMQ
 Connects to a Myo, then sends EMG and IMU data as ZMQ messages to SHAPE
 """
-from myo import *
+from host_io.myo import *
 import argparse
 import math
 import sys
 import time
+import numpy as np
 import host_io.zmqKeyboard as kbd # keyboard control of record enable/disable
 import data.communicator as cm
 comm = cm.Communicator([cm.SENSOR_PUB])
@@ -76,8 +77,7 @@ def proc_emg(emg_data):
     myodata['emg'] = proc_emg
 
 def proc_battery(battery_level):
-    # print("Battery", battery_level, end='\r')
-    osc_client.send_message("/battery", battery_level)
+    print("Battery", battery_level, end='\r')
 
 if args.address is not None:
     print("Attempting to connect to Myo:", args.address)
@@ -100,15 +100,16 @@ m.set_mode(EMG_Mode.send_emg.value, IMU_Mode.send_data.value, Classifier_Mode.di
 # Buzz to show Myo is ready.
 m.vibrate(1)
 
+
+prev_time = time.time()
 def run_loop():
+    global myodata, prev_time
     m.run()
-    '''
-    global myodata
-    rpy = myodata['rpy'] #get roll/pitch/yaw
-    print('\r'+rpy,end='')
-    #comm.SENSOR_PUB_SEND(rpy)
-    time.sleep(1.0/25)
-    '''
+    if time.time()-prev_time>(1.0/25):
+        rpy = np.array(myodata['rpy'])+0.5 #get roll/pitch/yaw
+        print('\r'+str(rpy),end='')
+        #comm.SENSOR_PUB_SEND(rpy)
+        prev_time = time.time()
 
 print("Now running...")
 try:
