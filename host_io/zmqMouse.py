@@ -27,7 +27,7 @@ import time
 from pynput.mouse import Button, Controller
 import host_io.zmqKeyboard as kbd # keyboard control of record enable/disable
 import data.communicator as cm
-comm = cm.Communicator([cm.SENSOR_PUSH, cm.DEATH_SUB])
+comm = cm.Communicator([cm.SENSOR_PUSH])
 
 mouse = Controller()
 while True:
