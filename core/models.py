@@ -92,7 +92,8 @@ class GestureMapper:
     def _pad(self, X):
         max_len = max(map(len, X))
 
-        padded = [ pad(x.T, maxlen=max_len, dtype=np.float, padding='post', value=MASK_VALUE).T for x in X ]
+        padded = [ pad(x.T, maxlen=max_len, dtype=np.float, padding='post',
+                       value=MASK_VALUE).T for x in X ]
 
         return np.stack(padded)
 
