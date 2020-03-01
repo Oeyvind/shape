@@ -23,7 +23,6 @@ shape:io
 
 Handles gesture input and learning mode input.
 """
-
 from collections import deque
 
 import numpy as np
@@ -49,7 +48,7 @@ def run(examples=10, select_lowest_mse=False):
                              cm.SYNTH_PLAY_PUSH ])
     
     status = CHILL
-    recorder = deque(maxlen=HISTORY_LENGTH)
+    recorder = deque(maxlen=200)
     
     for socket, msg in next(comm):
         if socket == cm.SENSOR_PULL:
@@ -59,7 +58,7 @@ def run(examples=10, select_lowest_mse=False):
             recorder.append(msg)
             
             if status == PLAY and len(recorder) > 10:
-                gesture = np.stack(recorder)
+                gesture = np.stack(recorder)[:HISTORY_LENGTH]
                 print('Send to play', gesture.shape)
 
                 comm.PLAY_REQ_SEND(gesture)
