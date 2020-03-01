@@ -56,7 +56,7 @@ def run(examples=10, select_lowest_mse=False):
             
             recorder.append(msg)
             
-            if status == PLAY:
+            if status == PLAY and len(recorder) > 10:
                 gesture = np.stack(recorder)
                 gesture = gesture[-HISTORY_LENGTH:]
                 print('Send to play', gesture.shape)
@@ -75,7 +75,8 @@ def run(examples=10, select_lowest_mse=False):
                 print('Recorded {} samples, making suggestions'.format(len(recorder)))
                 gesture = np.stack(recorder)
 
-                X,Y = scale_and_separate(gesture)
+                #X,Y = scale_and_separate(gesture)
+                X,Y = gesture.T
 
                 plt.plot(X,Y)
                 plt.xlim(-.1, 1.1)
