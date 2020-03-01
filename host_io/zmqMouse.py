@@ -20,29 +20,18 @@
 
 
 """
-Keyboard control of record enable via ZMK
+Mouse gesture send over ZMK
 """
 
-from pynput import keyboard
+import time
+from pynput.mouse import Button, Controller
+import host_io.zmqKeyboard as kbd # keyboard control of record enable/disable
 import data.communicator as cm
-comm = cm.Communicator([cm.LEARNING_MODE_REQ])
+comm = cm.Communicator([cm.SENSOR_PUB])
 
-def on_press(key):
-    try:
-        if key == keyboard.Key.space: #space
-            record_enable(1)
-        elif '{0}'.format(key) == "<96>": #zero
-            record_enable(0)
-    except AttributeError:
-        print('Key not used {0}'.format(key))
-
-def on_release(key):
-    pass
-
-def record_enable(record_flag):
-    comm.LEARNING_MODE_REQ_SEND(record_flag)
-    comm.LEARNING_MODE_REQ_RECV()
-    print("\nGesture recording:", ["DISABLE","ENABLE"][record_flag])
-
-listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-listener.start()
+mouse = Controller()
+while True:
+    msg = [mouse.position[0]*(1/2000.0), mouse.position[1]*(1/1000.0)] # normalize mouse data and send
+    print('\r'+str(msg),end='')
+    comm.SENSOR_PUB_SEND(msg)
+    time.sleep(1.0/25)

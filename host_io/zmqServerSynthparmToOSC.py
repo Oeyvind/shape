@@ -18,22 +18,26 @@
 #    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
-
 """
-Mouse gesture send over ZMK
+ZMK server, receive synth parameters and send them over OSC to synth
 """
 
-import time
-from pynput.mouse import Button, Controller
-import osc.zmqKeyboard as kbd # keyboard control of record enable/disable
+import sys
+from pythonosc.dispatcher import Dispatcher
+from pythonosc import osc_server
+from pythonosc import udp_client
+
 import data.communicator as cm
-comm = cm.Communicator([cm.SENSOR_PUB])
+comm = cm.Communicator([cm.SYNTH_PLAY_SUB])
 
-mouse = Controller()
+# OSC client
+send_port = 8903
+osc_client = udp_client.SimpleUDPClient("127.0.0.1", send_port)  # OSC Client for sending messages.
+
+def send_to_synth(parameters):
+    print(parameters)
+    osc_client.send_message("/shapesynth", parameters)
+
 while True:
-    msg = "mouse "
-    msg += str(mouse.position[0]*(1/2000.0)) + " " # normalize mouse data and send
-    msg += str(mouse.position[1]*(1/1000.0)) # normalize mouse data and send
-    print('\r'+msg,end='')
-    comm.SENSOR_PUB_SEND(msg)
-    time.sleep(1.0/25)
+    parameters = comm.PLAY_REQ_RECV()
+    send_to_synth(parameters)

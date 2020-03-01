@@ -28,7 +28,7 @@ import argparse
 import math
 import sys
 import time
-import osc.zmqKeyboard as kbd # keyboard control of record enable/disable
+import host_io.zmqKeyboard as kbd # keyboard control of record enable/disable
 import data.communicator as cm
 comm = cm.Communicator([cm.SENSOR_PUB])
 
