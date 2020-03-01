@@ -66,7 +66,7 @@ def train(n_classes, sync=False):
             # Threading bug somewhere in python, cannot pickle keras models. Once pickling is possible,
             # send the entire object. This is messy, because it can't be written by being loaded.
             model_file = '/shape/trained_models/{}_gesture_mapper_{}.h5'.format(input_dim, uuid.uuid4())
-            model.model.save(model_file)
+            model.model.save(model_file, include_optimizer=False)
 
             print('Training done, sending model')
             comm.MODEL_PUSH_SEND(model_file)
