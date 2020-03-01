@@ -23,28 +23,35 @@
 Keyboard control of record enable via ZMK
 """
 
-from pynput import keyboard
+import threading
 import data.communicator as cm
 comm = cm.Communicator([cm.LEARNING_MODE_PUSH])
 from data.inputs import REC, PLAY, CHILL
 
-def on_press(key):
-    try:
-        if key.char == ('r'):
-            set_status(REC)
-        if key.char == ('p'):
-            set_status(PLAY)
-        if key.char == ('c'):
-            set_status(CHILL)
-    except AttributeError:
-        print('Key not used {0}'.format(key))
+class KeyboardThread(threading.Thread):
 
-def on_release(key):
-    pass
+    def __init__(self, input_cbk = None, name='keyboard-input-thread'):
+        self.input_cbk = input_cbk
+        super(KeyboardThread, self).__init__(name=name)
+        self.start()
+
+    def run(self):
+        while True:
+            self.input_cbk(input()) #waits to get input + Return
+
+def my_callback(inp):
+    if inp == ('r'):
+        set_status(REC)
+    elif inp == ('p'):
+        set_status(PLAY)
+    elif inp == ('c'):
+        set_status(CHILL)
+    else:
+        print(inp, 'not in use', inp)
 
 def set_status(status):
-    comm.LEARNING_MODE_PUSH_SEND(status)
+    #comm.LEARNING_MODE_PUSH_SEND(status)
     print("\nInput status:", status)
 
-listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-listener.start()
+#start the Keyboard thread
+kthread = KeyboardThread(my_callback)
