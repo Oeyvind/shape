@@ -31,8 +31,11 @@ comm = cm.Communicator([cm.SENSOR_PUSH])
 from utils.constants import GESTURE_SAMPLING_FREQUENCY
 
 mouse = Controller()
+index = 0
 while True:
-    msg = [mouse.position[0]*(1/2000.0), mouse.position[1]*(1/1000.0)] # normalize mouse data and send
+    msg = [mouse.position[0]*(1/2000.0), mouse.position[1]*(1/1000.0), index] # normalize mouse data and send
+    index += 1
+    index %= 9999
     #print('\r'+str(msg),end='')
     print(msg)
     comm.SENSOR_PUSH_SEND(msg)
