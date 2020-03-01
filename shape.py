@@ -40,12 +40,7 @@ def run(n_classes=10, noise_std=.1):
 
     processes = []
     processes.append(mp.Process(target=core.train, args=(n_classes,False,)))
-    #processes.append(mp.Process(target=synth.interface.listen))
-
-    # These processes will be the building blocks for the play/learn push sockets.
-    # processes.append(mp.Process(target=ins.gesture))
-    # processes.append(mp.Process(target=ins.learning_mode))
-    # processes.append(mp.Process(target=ins.preferences))
+    processes.append(mp.Process(target=synth.interface.listen))
 
     for p in processes:
         p.start()
@@ -65,7 +60,8 @@ def run(n_classes=10, noise_std=.1):
 
         if socket == cm.PLAY_REP:
             try:
-                gesture_prediction, synth_prms_prediction = model.predict(msg[np.newaxis,:])
+                gesture = msg[np.newaxis,:]
+                gesture_prediction, synth_prms_prediction = model.predict(gesture)
                 comm.PLAY_REP_SEND([ gesture_prediction, synth_prms_prediction ])
             except AttributeError as e:
                 print('Model not ready')

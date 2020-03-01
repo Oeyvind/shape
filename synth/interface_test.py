@@ -46,7 +46,8 @@ class InterfaceTest(unittest.TestCase):
         cm.Waiter(cls.comm, [ SYNTH_READY ])
 
     def evaluate(self, instrument, n_parameters):
-        names = [ 'zero', 'circle', 'line', 'r_line', 'sine', 'mega_sine', 'spiral', 'tanh', 'random' ]
+        names = [ 'zero', 'circle', 'line', 'r_line', 'sine',
+                  'mega_sine', 'spiral', 'tanh', 'random' ]
         for name, trajectory in zip(names, trajectories):
             # Range is -1,1 for input signals, scale it to 0,1.
             X, Y = scale_and_separate(trajectory)
@@ -68,19 +69,21 @@ class InterfaceTest(unittest.TestCase):
             sounds = sorted(sounds, key=lambda L: L[1])
 
             title = '{}:{}'.format(instrument, name)
-            html = ('<html><title>{}</title><body><h1>{}</h1><img src="_{}.png" width="50%">'+
+            html = ('<html><title>{}</title><body><h1>{}</h1>'
+                    '<img src="_{}.png" width="50%">'
                     '<hr>').format(title, title, name)
 
             for filename, similarity in sounds:
-                html += ('<table><tr><td><b> {} </b><br><br> <audio controls>'+
-                         '<source src="{}" type="audio/wav"> </audio></td>'+
-                         '<td><img src="{}.png" width="60%"> </td></tr></table>'+
+                html += ('<table><tr><td><b> {} </b><br><br> <audio controls>'
+                         '<source src="{}" type="audio/wav"> </audio></td>'
+                         '<td><img src="{}.png" width="60%"> </td></tr></table>'
                          '<hr>').format(similarity, filename, filename)
 
 
             html += '</body></html>'
-
-            with open('/shape/sounds/{}_{}.html'.format(instrument, name), 'w') as out_file:
+            
+            html_file = '/shape/sounds/{}_{}.html'.format(instrument, name)
+            with open(html_file, 'w') as out_file:
                 out_file.write(html)
 
     def test_additive(self):

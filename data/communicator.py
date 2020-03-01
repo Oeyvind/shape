@@ -48,7 +48,7 @@ ports = {
     'SYNTH': (8008, req_rep),
     'DEATH': (6666, pub_sub) }
 
-# Enables LEARN_PUSH_SEND, LEARN_PUSH_RECV, SYNTH_REQ, SYNTH_REP, etc.
+# Enables LEARN_PUSH_SEND, LEARN_PUSH_RECV, SYNTH_REQ_SEND, SYNTH_REP_RECV, etc.
 module = sys.modules[__name__]
 for name, (_, socket_types) in ports.items():
     for soc_typ in socket_types:

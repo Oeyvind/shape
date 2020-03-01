@@ -31,13 +31,14 @@ import numpy as np
 from sklearn.utils import shuffle
 from tensorflow.keras.preprocessing.sequence import pad_sequences as pad
 
-from utils.constants import MASK_VALUE
+from utils.constants import MASK_VALUE, HISTORY_LENGTH
 
 class GestureMapper:
 
     def __init__(self, input_dim, n_classes, synth_parameters_dim, 
-                 n_filters=20, filter_widths=range(1,7), dropout=.5, hidden_size=128, n_hidden_layers=2,
-                 noise_std=.1, epochs=10, n_augments=10, validation_split=.2, history_length=30):
+                 n_filters=20, filter_widths=range(1,7), dropout=.5, hidden_size=128,
+                 n_hidden_layers=2, noise_std=.1, epochs=10, n_augments=10,
+                 validation_split=.2):
 
         inputs = layers.Input(shape=(None, input_dim))
 
@@ -74,7 +75,7 @@ class GestureMapper:
         self.epochs = epochs
         self.n_augments = n_augments
         self.validation_split = validation_split
-        self.history_length = history_length
+        self.history_length = HISTORY_LENGTH
 
         
     def add_datapoint(self, x_gesture, y_synth_prms):
