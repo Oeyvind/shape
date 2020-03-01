@@ -135,7 +135,7 @@ def run(examples=10, select_lowest_mse=False):
             status = msg
             print('STATUS:', status)
 
-            recorder = []
+            recorder.clear()
 
 
 if __name__ == '__main__':
