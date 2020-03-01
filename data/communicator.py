@@ -35,7 +35,7 @@ push_pull = ['PUSH', 'PULL']
 # All that is needed is to define name, port and socket type, and the module
 # will dynamically create function handles and do all the necessary registering.
 ports = {
-    'LEARN': (7000, push_pull),
+    'LEARN': (7000, req_rep),
     'PLAY': (7001, req_rep),
     'TRAIN': (7002, push_pull),
     'PREFERENCES': (7003, req_rep),
@@ -66,7 +66,7 @@ class Communicator:
                                    
         if not DEATH_PUB in required_sockets:
             required_sockets.append(DEATH_SUB)
-
+            
         for req_soc in required_sockets:
             name, socket_type = req_soc.split()
             port, _ = ports[name]
@@ -81,7 +81,7 @@ class Communicator:
         
     def PUSH(self, soc, port):
         self.sockets[soc] = self.context.socket(zmq.PUSH)
-        self.sockets[soc].bind('tcp://*:{}'.format(port))
+        self.sockets[soc].bind('tcp://0.0.0.0:{}'.format(port))
 
         
     def PULL(self, soc, port):
@@ -97,13 +97,13 @@ class Communicator:
         
     def REP(self, soc, port):
         self.sockets[soc] = self.context.socket(zmq.REP)
-        self.sockets[soc].bind('tcp://*:{}'.format(port))
+        self.sockets[soc].bind('tcp://0.0.0.0:{}'.format(port))
         self.poller.register(self.sockets[soc], zmq.POLLIN)
 
         
     def PUB(self, soc, port):
         self.sockets[soc] = self.context.socket(zmq.PUB)
-        self.sockets[soc].bind('tcp://*:{}'.format(port))
+        self.sockets[soc].bind('tcp://0.0.0.0:{}'.format(port))
 
         
     def SUB(self, soc, port):

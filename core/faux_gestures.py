@@ -23,7 +23,6 @@ Example gestures to be used for unit testing.
 """
 
 import numpy as np
-from scipy.special import expit
 
 x = np.linspace(-.5, .5, 50)
 y = np.zeros(50)
