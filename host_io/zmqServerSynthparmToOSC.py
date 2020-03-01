@@ -37,10 +37,10 @@ osc_client = udp_client.SimpleUDPClient("127.0.0.1", send_port)  # OSC Client fo
 
 def send_to_synth(parameters):
     print(parameters[0])
-    #osc_client.send_message("/shapesynth", parameters)
+    osc_client.send_message("/shapesynth", parameters)
 
 while True:
     parameters = comm.SYNTH_PLAY_PULL_RECV()
     parameters = np.squeeze(parameters)
-    #parameters = np.pad(parameters, pad_width=(0,25-len(parameters)), mode='constant')
+    parameters = np.pad(parameters, pad_width=(0,25-len(parameters)), mode='constant')
     send_to_synth(parameters.tolist())

@@ -50,7 +50,7 @@ def my_callback(inp):
         print(inp, 'not in use', inp)
 
 def set_status(status):
-    #comm.LEARNING_MODE_PUSH_SEND(status)
+    comm.LEARNING_MODE_PUSH_SEND(status)
     print("\nInput status:", status)
 
 #start the Keyboard thread
