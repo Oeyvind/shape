@@ -58,9 +58,7 @@ def run(n_classes=10, noise_std=.1):
         if socket == cm.PLAY_REP:
             try:
                 gesture = msg[np.newaxis,:]
-                t0 = time.time()
                 gesture_prediction, synth_prms_prediction = model.predict(gesture)
-                print(time.time() - t0)
                 comm.PLAY_REP_SEND([ gesture_prediction, synth_prms_prediction ])
             except AttributeError as e:
                 print('Model not ready')
