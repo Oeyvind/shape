@@ -37,7 +37,7 @@ class ShapeTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.comm = cm.Communicator([ cm.LEARN_PUSH, cm.PLAY_REQ, cm.DEATH_PUB, cm.LEARN_COUNT_SUB ])
+        cls.comm = cm.Communicator([ cm.LEARN_REQ, cm.PLAY_REQ, cm.DEATH_PUB, cm.LEARN_COUNT_SUB ])
         
         cls.processes = []
         cls.processes.append(mp.Process(target=shape.run))
@@ -50,7 +50,8 @@ class ShapeTest(unittest.TestCase):
         n = 3
         
         for gesture in trajectories[:n]:
-            self.comm.LEARN_PUSH_SEND([ gesture, create(gesture, ADDITIVE.n_parameters) ])
+            self.comm.LEARN_REQ_SEND([ gesture, create(gesture, ADDITIVE.n_parameters) ])
+            self.comm.LEARN_REQ_RECV()
 
         for socket, msg in next(self.comm):
             if socket == cm.LEARN_COUNT_SUB:
