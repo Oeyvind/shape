@@ -62,7 +62,7 @@ def run(examples=10, select_lowest_mse=False):
 
                 if len(gesture) < HISTORY_LENGTH:
                     gesture = np.pad(gesture,
-                                     pad_width=((HISTORY_LENGTH-len(gesture),0), (0,0))
+                                     pad_width=((HISTORY_LENGTH-len(gesture),0), (0,0)),
                                      mode='constant', constant_values=MASK_VALUE)
                 
                 print('Send to play', gesture.shape)
