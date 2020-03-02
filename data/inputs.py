@@ -70,6 +70,7 @@ def run(examples=10, select_lowest_mse=False):
 
                 if response is not None:
                     gesture_prediction, synth_prms_prediction = response
+                    synth_prms_prediction = np.clip(synth_prms_prediction, 0, 1)
                     print('Predicted gesture:', np.argmax(gesture_prediction))
                     comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
