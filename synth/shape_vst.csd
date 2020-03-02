@@ -22,6 +22,7 @@ form size(401, 415), caption("Shape"), pluginID("shap")
 image bounds(0, 0, 401, 214), file("shape.png"), corners(10)
 
 hslider bounds(15,175,120,10), channel("pitch"), text("pitch"), range(0.0, 1.0, 0.3)
+hslider bounds(260,175,120,10), channel("vol"), text("vol"), range(-96, 12, 0)
 button bounds(155,175,80,10), channel("osc"), text("osc"), colour:0("yellow"), colour:1("green")
 
 button bounds(20,200,80,10), channel("sine"), text("sine") colour:0("yellow"), colour:1("green")
@@ -201,18 +202,26 @@ endin
 ; synthesize sound
 instr 20
 #include "sine.inc"
+kvol chnget "vol"
+outch 1, a1*ampdbfs(kvol), 2, a2*ampdbfs(kvol)
 endin
 
 instr 21
 #include "submono.inc"
+kvol chnget "vol"
+outch 1, a1*ampdbfs(kvol), 2, a2*ampdbfs(kvol)
 endin
 
 instr 22
 #include "additive.inc"
+kvol chnget "vol"
+outch 1, a1*ampdbfs(kvol), 2, a2*ampdbfs(kvol)
 endin
 
 instr 23
 #include "partikkelsynth.inc"
+kvol chnget "vol"
+outch 1, a1*ampdbfs(kvol), 2, a2*ampdbfs(kvol)
 endin
 
 </CsInstruments>
