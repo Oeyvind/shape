@@ -23,12 +23,14 @@
 Myo-to-ZMQ
 Connects to a Myo, then sends EMG and IMU data as ZMQ messages to SHAPE
 """
+from collections import deque
 from host_io.myo import *
 import argparse
 import math
 import sys
 import time
 import numpy as np
+import threading
 import host_io.zmqKeyboard as kbd # keyboard control of record enable/disable
 from utils.constants import GESTURE_SAMPLING_FREQUENCY
 import data.communicator as cm
@@ -103,21 +105,29 @@ m.vibrate(1)
 
 
 prev_time = time.time()
-def run_loop():
-    global myodata, prev_time
-    m.run()
-    if not kbd.chill:
-        if time.time()-prev_time>(1.0/GESTURE_SAMPLING_FREQUENCY):
-            rpy = np.clip(np.array(myodata['rpy'])+0.5,0.0,1.0) #get roll/pitch/yaw
-            emgsum = np.clip(np.sqrt(np.sum(np.square(np.array(myodata['emg'])))),0.0, 1.0)#np.sum((np.array(myodata['emg'])*0.5)+0.5)
-            print('\r RPY:{}, EMG:{}'.format(str(rpy), str(emgsum)),end='')
-            comm.SENSOR_PUSH_SEND(rpy.tolist().append(emgsum))
-            prev_time = time.time()
+emg_filter = deque(maxlen=4)
 
-print("Now running...")
+def send_loop(name):
+    print(name)
+    global myodata
+    while True:
+        if not kbd.chill:
+            rpy = np.clip(np.array(myodata['rpy'])+0.5,0.0,1.0) #get roll/pitch/yaw
+            emgsum = np.clip(np.sqrt(np.sum(np.square(np.array(myodata['emg'])))),0.0, 1.0)
+            emg_filter.append(emgsum)
+            emg_avg = np.mean(emg_filter)
+            output = rpy.tolist()
+            #output.append(emg_avg) #uncomment to include EMG data
+            print('{}\r'.format(np.around(output,decimals=2)),end='')
+            comm.SENSOR_PUSH_SEND(output)
+        time.sleep(1.0/GESTURE_SAMPLING_FREQUENCY)
+
+x = threading.Thread(target=send_loop, args=(1,))
+x.start()
+print("Send loop started, now running myo...")
 try:
     while True:
-        run_loop()
+        m.run()
 except KeyboardInterrupt:
     pass
 finally:
