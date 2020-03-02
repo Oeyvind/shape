@@ -32,12 +32,11 @@ from datetime import datetime
 # updating synthesis parameters and retrieveing analysis values for each step
 
 class Synth:
-    def __init__(self, duration, instrument, synthesis_parms, gesture_rate, pitchoverride=0):
+    def __init__(self, duration, instrument, synthesis_parms, gesture_rate, pitchoverride=1):
         self.duration = duration
         self.synthesis_parms = synthesis_parms # numpy array with size 10 for the instr submono
         # settings
-        instrument = instrument
-
+        print(instrument)
         #set up csound
         self.cs = ctcsound.Csound()
 

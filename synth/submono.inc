@@ -20,6 +20,9 @@ kpitchoverride = p4
 if kpitchoverride == 1 then
   kpitch = 0.3
   tablew kpitch, 1, giParm_values
+elseif kpitchoverride == 2 then
+  kpitch chnget "pitch"
+  tablew kpitch, 1, giParm_values
 endif
 
 ; read from table, scale and map according to mapping type

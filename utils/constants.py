@@ -12,5 +12,6 @@ ADDITIVE = psynth('additive', 14)
 SUBMONO = psynth('submono', 10)
 SINE = psynth('sine', 2)
 PARTIKKEL = psynth('partikkel', 25)
+SYNTH_INSTR = SUBMONO
 
 PROJECT_ROOT = Path(__file__).parent.parent

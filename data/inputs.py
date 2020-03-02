@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 
 import data.communicator as cm
 from core.candidate import create, scale_and_separate
-from utils.constants import ADDITIVE, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALUE
+from utils.constants import SYNTH_INSTR, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALUE
 
 REC = 'record'
 PLAY = 'play'
@@ -84,14 +84,14 @@ def run(examples=10, select_lowest_mse=False):
                 plt.plot(X,Y)
                 plt.xlim(-.1, 1.1)
                 plt.ylim(-.1, 1.1)
-                gesture_plot = '{}/sounds/_{}.png'.format(PROJECT_ROOT, ADDITIVE.name)
+                gesture_plot = '{}/sounds/_{}.png'.format(PROJECT_ROOT, SYNTH_INSTR.name)
                 plt.savefig(gesture_plot, dpi=300)
                 plt.clf()
 
-                parameters = [ create(gesture, ADDITIVE.n_parameters) for _ in
+                parameters = [ create(gesture, SYNTH_INSTR.n_parameters) for _ in
                                range(examples) ]
 
-                comm.SYNTH_REQ_SEND([ parameters, ADDITIVE.name, X, Y, True ])
+                comm.SYNTH_REQ_SEND([ parameters, SYNTH_INSTR.name, X, Y, True ])
 
                 sounds = comm.SYNTH_REQ_RECV()
                 filenames, similarities = zip(*sounds)
@@ -99,10 +99,10 @@ def run(examples=10, select_lowest_mse=False):
 
                 sounds = sorted(sounds, key=lambda L: L[1])
 
-                title = ADDITIVE.name
+                title = SYNTH_INSTR.name
                 html = ('<html><title>{}</title><body><h1>{}</h1>'
                         '<img src="_{}.png" width="50%">'
-                        '<hr>').format(title, title, ADDITIVE.name)
+                        '<hr>').format(title, title, SYNTH_INSTR.name)
 
                 for i, (filename, similarity, _) in enumerate(sounds):
                     html += ('<table><tr><td><b>Candidate {}<br>'
@@ -113,7 +113,7 @@ def run(examples=10, select_lowest_mse=False):
 
                 html += '</body></html>'
 
-                html_file = '{}/sounds/{}.html'.format(PROJECT_ROOT, ADDITIVE.name)
+                html_file = '{}/sounds/{}.html'.format(PROJECT_ROOT, SYNTH_INSTR.name)
                 with open(html_file, 'w') as out_file:
                     out_file.write(html)
 
