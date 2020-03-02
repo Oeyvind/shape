@@ -111,7 +111,7 @@ def run_loop():
             rpy = np.clip(np.array(myodata['rpy'])+0.5,0.0,1.0) #get roll/pitch/yaw
             emgsum = np.clip(np.sqrt(np.sum(np.square(np.array(myodata['emg'])))),0.0, 1.0)#np.sum((np.array(myodata['emg'])*0.5)+0.5)
             print('\r RPY:{}, EMG:{}'.format(str(rpy), str(emgsum)),end='')
-            #comm.SENSOR_PUSH_SEND(rpy.append(emgsum))
+            comm.SENSOR_PUSH_SEND(rpy.tolist().append(emgsum))
             prev_time = time.time()
 
 print("Now running...")
