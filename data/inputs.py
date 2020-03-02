@@ -71,7 +71,7 @@ def run(examples=10, select_lowest_mse=False):
                 if response is not None:
                     gesture_prediction, synth_prms_prediction = response
                     synth_prms_prediction = np.clip(synth_prms_prediction, 0, 1)
-                    print('Predicted gesture:', np.argmax(gesture_prediction))
+                    print(np.around(gesture_prediction, decimals=1))
                     comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
         if socket == cm.LEARNING_MODE_PULL:
@@ -79,8 +79,10 @@ def run(examples=10, select_lowest_mse=False):
                 print('Recorded {} samples, making suggestions'.format(len(recorder)))
                 gesture = np.stack(recorder)
 
-                X,Y = gesture.T
-
+                # Can deal with both mouse (2D) and Myo (4D)
+                X = gesture[:,0]
+                Y = gesture[:,1]
+                
                 plt.plot(X,Y)
                 plt.xlim(-.1, 1.1)
                 plt.ylim(-.1, 1.1)
@@ -91,7 +93,7 @@ def run(examples=10, select_lowest_mse=False):
                 parameters = [ create(gesture, SYNTH_INSTR.n_parameters) for _ in
                                range(examples) ]
 
-                comm.SYNTH_REQ_SEND([ parameters, SYNTH_INSTR.name, X, Y, True ])
+                comm.SYNTH_REQ_SEND([ parameters, SYNTH_INSTR.name, gesture, True ])
 
                 sounds = comm.SYNTH_REQ_RECV()
                 filenames, similarities = zip(*sounds)

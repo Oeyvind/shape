@@ -4,7 +4,7 @@ from pathlib import Path
 GESTURE_SAMPLING_FREQUENCY = 15 # Hz
 HISTORY_LENGTH = 30
 MASK_VALUE = -100
-N_CLASSES = 20
+N_CLASSES = 10
 
 psynth = namedtuple('Synth', ['name', 'n_parameters'])
 

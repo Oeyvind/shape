@@ -63,3 +63,4 @@ y = np.linspace(0, 1, 40)*np.random.random(40)
 random = np.c_[x,y]
 
 trajectories = [ zero, circle, line, r_line, sine, mega_sine, spiral, tanh, random ]
+trajectories = [ (t+1)/2 for t in trajectories ] # 0-1
