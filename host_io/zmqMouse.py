@@ -34,7 +34,7 @@ mouse = Controller()
 index = 0
 while True:
     if not kbd.chill:
-        msg = [mouse.position[0]*(1/2000.0), mouse.position[1]*(1/1000.0)] # normalize mouse data and send
+        msg = [mouse.position[0]*(1/2000.0), 1-(mouse.position[1]*(1/1000.0))] # normalize mouse data and send
         print('\r'+str(msg),end='')
         comm.SENSOR_PUSH_SEND(msg)
     time.sleep(1.0/GESTURE_SAMPLING_FREQUENCY)

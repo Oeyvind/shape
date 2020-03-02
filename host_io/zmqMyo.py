@@ -30,8 +30,9 @@ import sys
 import time
 import numpy as np
 import host_io.zmqKeyboard as kbd # keyboard control of record enable/disable
+from utils.constants import GESTURE_SAMPLING_FREQUENCY
 import data.communicator as cm
-comm = cm.Communicator([cm.SENSOR_PUB])
+comm = cm.Communicator([cm.SENSOR_PUSH])
 
 
 parser = argparse.ArgumentParser(description='Connects to a Myo, then sends EMG and IMU data as OSC messages to localhost:3000.')
@@ -105,11 +106,13 @@ prev_time = time.time()
 def run_loop():
     global myodata, prev_time
     m.run()
-    if time.time()-prev_time>(1.0/25):
-        rpy = np.array(myodata['rpy'])+0.5 #get roll/pitch/yaw
-        print('\r'+str(rpy),end='')
-        #comm.SENSOR_PUB_SEND(rpy)
-        prev_time = time.time()
+    if not kbd.chill:
+        if time.time()-prev_time>(1.0/GESTURE_SAMPLING_FREQUENCY):
+            rpy = np.clip(np.array(myodata['rpy'])+0.5,0.0,1.0) #get roll/pitch/yaw
+            emgsum = np.clip(np.sqrt(np.sum(np.square(np.array(myodata['emg'])))),0.0, 1.0)#np.sum((np.array(myodata['emg'])*0.5)+0.5)
+            print('\r RPY:{}, EMG:{}'.format(str(rpy), str(emgsum)),end='')
+            #comm.SENSOR_PUSH_SEND(rpy.append(emgsum))
+            prev_time = time.time()
 
 print("Now running...")
 try:
