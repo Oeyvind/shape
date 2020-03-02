@@ -20,8 +20,8 @@
 
 """
 Creates candidate for mapping of gestures to synth parameters. 
-The trajectory is assumed to be in the range of [-1,1] on all axes,
-but it will return synth parameters in the range [0,1].
+Trajectory is assumed to be in the range of [0,1]. The output will 
+be clipped to this range anyway.
 """
 
 import random
@@ -29,18 +29,17 @@ import random
 import numpy as np
 
 def scale_and_separate(trajectory):
+    assert False, 'This function should not be used. Inputs are supposed to be [0,1]'
     scaled = (trajectory + 1)/2
 
     return scaled.T
 
 def create(trajectory, n_parameters):
-    X,Y = scale_and_separate(trajectory)
-    
     root = np.random.rand( 1, n_parameters )
-    root = np.repeat(root, len(X), axis=0)
+    root = np.repeat(root, len(trajectory), axis=0)
 
     for _param in root.T:
-        _param += random.choice([X,Y])*np.random.rand()
+        _param += random.choice(trajectory.T)*np.random.rand()
 
     root = np.clip(root, 0, 1)
 

@@ -27,6 +27,7 @@ import multiprocessing as mp
 import time
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from synth.interface import listen, SYNTH_READY
 import data.communicator as cm
@@ -45,6 +46,14 @@ class InterfaceTest(unittest.TestCase):
 
         cm.Waiter(cls.comm, [ SYNTH_READY ])
 
+
+    def test_4d_input(self):
+        gesture = np.hstack([ trajectories[1], trajectories[3] ])
+        self.comm.SYNTH_REQ_SEND([ [ create(gesture, ADDITIVE.n_parameters) ],
+                                   ADDITIVE.name, gesture, True ])
+        sounds = self.comm.SYNTH_REQ_RECV()
+        print('Check', sounds)
+        
     def evaluate(self, instrument, n_parameters):
         names = [ 'zero', 'circle', 'line', 'r_line', 'sine',
                   'mega_sine', 'spiral', 'tanh', 'random' ]
@@ -60,9 +69,9 @@ class InterfaceTest(unittest.TestCase):
             plt.clf()
 
             n = 8
-
             parameters = [ create(trajectory, n_parameters) for _ in range(n) ]
 
+            # FIIIIXXXXXX
             self.comm.SYNTH_REQ_SEND([ parameters, instrument, X, Y, True ])
 
             sounds = self.comm.SYNTH_REQ_RECV()

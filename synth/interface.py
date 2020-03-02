@@ -35,10 +35,10 @@ from utils.constants import GESTURE_SAMPLING_FREQUENCY
 
 SYNTH_READY = 'Synth interface process ready'
 
-def play_and_analyze(parameters, instrument, X, Y, plot):
+def play_and_analyze(parameters, instrument_name, gesture, plot):
     
-    duration = parameters.shape[0]/GESTURE_SAMPLING_FREQUENCY
-    my_synth = Synth(duration, instrument, None, GESTURE_SAMPLING_FREQUENCY)
+    duration = len(parameters)/GESTURE_SAMPLING_FREQUENCY
+    my_synth = Synth(duration, instrument_name, None, GESTURE_SAMPLING_FREQUENCY)
         
     output_analysis = []
 
@@ -51,44 +51,53 @@ def play_and_analyze(parameters, instrument, X, Y, plot):
     my_synth.cleanup()
 
     if plot:
-        x = np.arange(len(X))
+        x = np.arange(len(parameters))
 
-        fig, axs = plt.subplots(5, 2, sharex=True, sharey=True)
+        gesture_plot_height = int(gesture.shape[1]/2)
+
+        total_plot_height = int(gesture_plot_height + 4)
+        
+        fig, axis = plt.subplots(total_plot_height, 2, sharex=True, sharey=True)
 
         # Find the most similar
-        X_sim = [ mse(X, feature) for feature in output_analysis.T ]
-        Y_sim = [ mse(Y, feature) for feature in output_analysis.T ]
+        simils = []
+        for g_axis in gesture.T:
+            simils.append([ mse(g_axis, feature) for feature in output_analysis.T ])
 
-        X_most_similar = np.argmin(X_sim)
-        Y_most_similar = np.argmin(Y_sim)
+        most_simil = [ np.argmin(s) for s in simils ]
+        
+        colors = ['r','g','c','m']
 
-        X_color = 'r'
-        Y_color = 'g'
-        axs[0,0].plot(x, X, label='gesture X', color=X_color)
-        axs[0,0].legend(loc='upper right')
-        axs[0,1].plot(x, Y, label='gesture Y', color=Y_color)
-        axs[0,1].legend(loc='upper right')
+        # Plot gesture
+        iv, jv = np.meshgrid(np.arange(gesture_plot_height), np.arange(2), indexing='ij')
+        plot_coords = list(zip(np.ndarray.flatten(iv), np.ndarray.flatten(jv)))
 
-        iv, jv = np.meshgrid(np.arange(1,5), np.arange(2), indexing='ij')
+        for k, g_axis in enumerate(gesture.T):
+            i,j = plot_coords[k]
+            axis[i,j].plot(x, g_axis, label='gesture axis {}'.format(k), color=colors[k])
+            axis[i,j].legend(loc='upper right')
+        
+        # Plot audio features
+        iv, jv = np.meshgrid(np.arange(gesture_plot_height, total_plot_height),
+                             np.arange(2), indexing='ij')
         plot_coords = list(zip(np.ndarray.flatten(iv), np.ndarray.flatten(jv)))
 
         for k, feature in enumerate(output_analysis.T):
             color = 'b'
-            if k == X_most_similar:
-                color = X_color
-            if k == Y_most_similar:
-                color = Y_color
-            if k == X_most_similar == Y_most_similar:
-                color = 'm'
+            if k in most_simil:
+                if most_simil.count(k) > 1:
+                    color = 'k'
+                else:
+                    color = colors[most_simil.index(k)]
 
             i,j = plot_coords[k]
             audio_features = ['amp', 'env_crest', 'pitch', 'centroid',
                               'flatness', 's_crest', 'flux', 'mfcc_diff']
-            axs[i,j].plot(x, feature, color=color, label=audio_features[k])
-            axs[i,j].legend(loc='upper right')
-            axs[i,j].set_ylim(0,1)
+            axis[i,j].plot(x, feature, color=color, label=audio_features[k])
+            axis[i,j].legend(loc='upper right')
+            axis[i,j].set_ylim(0,1)
 
-        similarity = np.min(X_sim) + np.min(Y_sim)
+        similarity = np.sum([ min(s) for s in simils ])
         plt.savefig('/shape/sounds/{}.png'.format(my_synth.filename), dpi=300)
         plt.close()
 
@@ -103,8 +112,9 @@ def listen(sync=False):
         comm.READY_REQ_RECV()
 
     pool = mp.Pool()
-    for _, (parameters, instrument, X, Y, plot) in next(comm):
-        func = partial(play_and_analyze, instrument=instrument, X=X, Y=Y, plot=plot)
+    for _, (parameters, instrument_name, gesture, plot) in next(comm):
+        func = partial(play_and_analyze, instrument_name=instrument_name,
+                       gesture=gesture, plot=plot)
         outputs = pool.map(func, parameters)
         comm.SYNTH_REP_SEND(outputs)
 

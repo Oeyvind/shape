@@ -38,7 +38,8 @@ TRAIN_READY = 'Train process ready'
 
 
 def train(n_classes, sync=False):
-    comm = cm.Communicator([cm.TRAIN_PULL, cm.MODEL_PUSH, cm.READY_REQ, cm.LEARN_COUNT_PUB])
+    comm = cm.Communicator([cm.TRAIN_PULL, cm.MODEL_PUSH,
+                            cm.READY_REQ, cm.LEARN_COUNT_PUB])
 
     if sync:
         comm.READY_REQ_SEND(TRAIN_READY)
@@ -63,9 +64,9 @@ def train(n_classes, sync=False):
             model.add_datapoint(x_gesture, y_synth_prms)
             model.train()
 
-            # Threading bug somewhere in python, cannot pickle keras models. Once pickling is possible,
-            # send the entire object. This is messy, because it can't be written by being loaded.
-            model_file = '/shape/trained_models/{}_gesture_mapper_{}.h5'.format(input_dim, uuid.uuid4())
+            # Cannot pickle Keras model, so save to disk.
+            model_file = ('/shape/trained_models/'
+                          '{}_gesture_mapper_{}.h5').format(input_dim, uuid.uuid4())
             model.model.save(model_file, include_optimizer=False)
 
             print('Training done, sending model')
