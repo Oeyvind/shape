@@ -91,7 +91,6 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
                 else:
                     color = colors[most_simil.index(k)]
 
-            i,j = plot_coords[k]
             audio_features = ['amp', 'env_crest', 'pitch', 'centroid',
                               'flatness', 's_crest', 'flux', 'mfcc_diff']
 
