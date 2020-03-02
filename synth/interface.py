@@ -28,6 +28,7 @@ import multiprocessing as mp
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error as mse
+import matplotlib._color_data as mcd
 
 import data.communicator as cm
 from synth.synth import Synth
@@ -53,12 +54,9 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
     if plot:
         x = np.arange(len(parameters))
 
-        gesture_plot_height = int(gesture.shape[1]/2)
-
+        gesture_plot_height = int(np.ceil(gesture.shape[1]/2))
         total_plot_height = int(gesture_plot_height + 4)
         
-        fig, axis = plt.subplots(total_plot_height, 2, sharex=True, sharey=True)
-
         # Find the most similar
         simils = []
         for g_axis in gesture.T:
@@ -66,16 +64,19 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
 
         most_simil = [ np.argmin(s) for s in simils ]
         
-        colors = ['r','g','c','m']
+        colors = list(mcd.XKCD_COLORS.values())
 
         # Plot gesture
         iv, jv = np.meshgrid(np.arange(gesture_plot_height), np.arange(2), indexing='ij')
         plot_coords = list(zip(np.ndarray.flatten(iv), np.ndarray.flatten(jv)))
 
+        shape = (total_plot_height, 2)
+        
         for k, g_axis in enumerate(gesture.T):
-            i,j = plot_coords[k]
-            axis[i,j].plot(x, g_axis, label='gesture axis {}'.format(k), color=colors[k])
-            axis[i,j].legend(loc='upper right')
+            ax = plt.subplot2grid(shape, plot_coords[k])
+            ax.plot(x, g_axis, label='gesture axis {}'.format(k), color=colors[k])
+            ax.legend(loc='upper right')
+            ax.set_ylim(0,1)
         
         # Plot audio features
         iv, jv = np.meshgrid(np.arange(gesture_plot_height, total_plot_height),
@@ -93,9 +94,12 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
             i,j = plot_coords[k]
             audio_features = ['amp', 'env_crest', 'pitch', 'centroid',
                               'flatness', 's_crest', 'flux', 'mfcc_diff']
-            axis[i,j].plot(x, feature, color=color, label=audio_features[k])
-            axis[i,j].legend(loc='upper right')
-            axis[i,j].set_ylim(0,1)
+
+            ax = plt.subplot2grid(shape, plot_coords[k])
+            ax.plot(x, feature, color=color, label=audio_features[k])
+            ax.legend(loc='upper right')
+            ax.set_ylim(0,1)
+            
 
         similarity = np.sum([ min(s) for s in simils ])
         plt.savefig('/shape/sounds/{}.png'.format(my_synth.filename), dpi=300)

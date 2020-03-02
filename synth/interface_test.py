@@ -32,7 +32,7 @@ import numpy as np
 from synth.interface import listen, SYNTH_READY
 import data.communicator as cm
 from core.faux_gestures import trajectories
-from core.candidate import create, scale_and_separate
+from core.candidate import create
 from utils.constants import ADDITIVE, SUBMONO, SINE, PARTIKKEL
 
 class InterfaceTest(unittest.TestCase):
@@ -46,6 +46,20 @@ class InterfaceTest(unittest.TestCase):
 
         cm.Waiter(cls.comm, [ SYNTH_READY ])
 
+    def test_9d_input(self):
+        gesture = np.random.rand(20,9)
+        self.comm.SYNTH_REQ_SEND([ [ create(gesture, ADDITIVE.n_parameters) ],
+                                   ADDITIVE.name, gesture, True ])
+        sounds = self.comm.SYNTH_REQ_RECV()
+        print('Check', sounds)
+
+        
+    def test_3d_input(self):
+        gesture = np.random.rand(20,3)
+        self.comm.SYNTH_REQ_SEND([ [ create(gesture, ADDITIVE.n_parameters) ],
+                                   ADDITIVE.name, gesture, True ])
+        sounds = self.comm.SYNTH_REQ_RECV()
+        print('Check', sounds)
 
     def test_4d_input(self):
         gesture = np.hstack([ trajectories[1], trajectories[3] ])
