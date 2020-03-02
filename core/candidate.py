@@ -28,12 +28,6 @@ import random
 
 import numpy as np
 
-def scale_and_separate(trajectory):
-    assert False, 'This function should not be used. Inputs are supposed to be [0,1]'
-    scaled = (trajectory + 1)/2
-
-    return scaled.T
-
 def create(trajectory, n_parameters):
     root = np.random.rand( 1, n_parameters )
     root = np.repeat(root, len(trajectory), axis=0)
