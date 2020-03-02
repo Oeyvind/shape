@@ -71,7 +71,7 @@ def run(examples=10, select_lowest_mse=False):
                 if response is not None:
                     gesture_prediction, synth_prms_prediction = response
                     synth_prms_prediction = np.clip(synth_prms_prediction, 0, 1)
-                    print(np.around(gesture_prediction, decimals=1))
+                    print('{}\r'.format(np.around(np.squeeze(gesture_prediction), decimals=2)),end='')
                     comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
         if socket == cm.LEARNING_MODE_PULL:
@@ -82,7 +82,7 @@ def run(examples=10, select_lowest_mse=False):
                 # Can deal with both mouse (2D) and Myo (4D)
                 X = gesture[:,0]
                 Y = gesture[:,1]
-                
+
                 plt.plot(X,Y)
                 plt.xlim(-.1, 1.1)
                 plt.ylim(-.1, 1.1)
