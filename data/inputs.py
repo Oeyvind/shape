@@ -31,7 +31,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 import data.communicator as cm
-from core.candidate import create, scale_and_separate
+from core.candidate import create
 from utils.constants import SYNTH_INSTR, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALUE
 
 REC = 'record'
@@ -71,7 +71,8 @@ def run(examples=10, select_lowest_mse=False):
                 if response is not None:
                     gesture_prediction, synth_prms_prediction = response
                     synth_prms_prediction = np.clip(synth_prms_prediction, 0, 1)
-                    print('{}\r'.format(np.around(np.squeeze(gesture_prediction), decimals=2)),end='')
+                    print('{}\r'.format(np.around(np.squeeze(gesture_prediction),
+                                                  decimals=2)),end='')
                     comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
         if socket == cm.LEARNING_MODE_PULL:
