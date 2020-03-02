@@ -46,6 +46,15 @@ tablew 1.0, 22, giParm_values
 tablew 5.0, 23, giParm_values
 tablew 2.0, 24, giParm_values
 
+kpitchoverride = p4
+if kpitchoverride == 1 then
+  kpitch = 0.3
+  tablew kpitch, 1, giParm_values
+elseif kpitchoverride == 2 then
+  kpitch chnget "pitch"
+  tablew kpitch, 1, giParm_values
+endif
+
 ; read from table, scale and map according to mapping type
 kamp read_and_map 0
 kgrainrate read_and_map 1

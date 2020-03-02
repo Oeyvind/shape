@@ -16,6 +16,15 @@ tablew 1, 7, giParm_values
 tablew 0, 8, giParm_values
 tablew 0, 9, giParm_values
 
+kpitchoverride = p4
+if kpitchoverride == 1 then
+  kpitch = 0.3
+  tablew kpitch, 1, giParm_values
+elseif kpitchoverride == 2 then
+  kpitch chnget "pitch"
+  tablew kpitch, 1, giParm_values
+endif
+
 ; read from table, scale and map according to mapping type
 kamp read_and_map 0
 kcps read_and_map 1

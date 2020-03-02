@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
-# 
+#
 #    Copyright 2019 Oeyvind Brandtsegg and Axel Tidemann
 #
 #    This file is part of the Shape package
 #
 #    The Shape package is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License version 3 
+#    it under the terms of the GNU General Public License version 3
 #    as published by the Free Software Foundation.
 #
 #    The Shape is distributed in the hope that it will be useful,
@@ -15,7 +15,7 @@
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with The Shape package.  
+#    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
 """
@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 
 import data.communicator as cm
 from core.candidate import create, scale_and_separate
-from utils.constants import ADDITIVE, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALUE
+from utils.constants import SYNTH_INSTR, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALUE
 
 REC = 'record'
 PLAY = 'play'
@@ -46,17 +46,17 @@ def run(examples=10, select_lowest_mse=False):
     comm = cm.Communicator([ cm.SENSOR_PULL, cm.LEARNING_MODE_PULL,
                              cm.LEARN_REQ, cm.PLAY_REQ, cm.SYNTH_REQ,
                              cm.SYNTH_PLAY_PUSH ])
-    
+
     status = CHILL
     recorder = deque(maxlen=200)
-    
+
     for socket, msg in next(comm):
         if socket == cm.SENSOR_PULL:
             if status == CHILL:
                 continue
 
             recorder.append(msg)
-            
+
             if status == PLAY and len(recorder):
                 gesture = np.stack(recorder)[-HISTORY_LENGTH:]
 
@@ -64,7 +64,7 @@ def run(examples=10, select_lowest_mse=False):
                     gesture = np.pad(gesture,
                                      pad_width=((HISTORY_LENGTH-len(gesture),0), (0,0)),
                                      mode='constant', constant_values=MASK_VALUE)
-                
+
                 comm.PLAY_REQ_SEND(gesture)
                 response = comm.PLAY_REQ_RECV()
 
@@ -86,14 +86,14 @@ def run(examples=10, select_lowest_mse=False):
                 plt.plot(X,Y)
                 plt.xlim(-.1, 1.1)
                 plt.ylim(-.1, 1.1)
-                gesture_plot = '{}/sounds/_{}.png'.format(PROJECT_ROOT, ADDITIVE.name)
+                gesture_plot = '{}/sounds/_{}.png'.format(PROJECT_ROOT, SYNTH_INSTR.name)
                 plt.savefig(gesture_plot, dpi=300)
                 plt.clf()
-                
-                parameters = [ create(gesture, ADDITIVE.n_parameters) for _ in
+
+                parameters = [ create(gesture, SYNTH_INSTR.n_parameters) for _ in
                                range(examples) ]
 
-                comm.SYNTH_REQ_SEND([ parameters, ADDITIVE.name, gesture, True ])
+                comm.SYNTH_REQ_SEND([ parameters, SYNTH_INSTR.name, gesture, True ])
 
                 sounds = comm.SYNTH_REQ_RECV()
                 filenames, similarities = zip(*sounds)
@@ -101,10 +101,10 @@ def run(examples=10, select_lowest_mse=False):
 
                 sounds = sorted(sounds, key=lambda L: L[1])
 
-                title = ADDITIVE.name
+                title = SYNTH_INSTR.name
                 html = ('<html><title>{}</title><body><h1>{}</h1>'
                         '<img src="_{}.png" width="50%">'
-                        '<hr>').format(title, title, ADDITIVE.name)
+                        '<hr>').format(title, title, SYNTH_INSTR.name)
 
                 for i, (filename, similarity, _) in enumerate(sounds):
                     html += ('<table><tr><td><b>Candidate {}<br>'
@@ -115,7 +115,7 @@ def run(examples=10, select_lowest_mse=False):
 
                 html += '</body></html>'
 
-                html_file = '{}/sounds/{}.html'.format(PROJECT_ROOT, ADDITIVE.name)
+                html_file = '{}/sounds/{}.html'.format(PROJECT_ROOT, SYNTH_INSTR.name)
                 with open(html_file, 'w') as out_file:
                     out_file.write(html)
 
