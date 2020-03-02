@@ -27,6 +27,7 @@ import threading
 import data.communicator as cm
 comm = cm.Communicator([cm.LEARNING_MODE_PUSH])
 from data.inputs import REC, PLAY, CHILL
+chill = 0
 
 class KeyboardThread(threading.Thread):
 
@@ -50,6 +51,9 @@ def my_callback(inp):
         print(inp, 'not in use', inp)
 
 def set_status(status):
+    if status == CHILL:
+        chill = True
+    else: chill = False
     comm.LEARNING_MODE_PUSH_SEND(status)
     print("\nInput status:", status)
 

@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
-# 
+#
 #    Copyright 2019 Oeyvind Brandtsegg and Axel Tidemann
 #
 #    This file is part of the Shape package
 #
 #    The Shape package is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License version 3 
+#    it under the terms of the GNU General Public License version 3
 #    as published by the Free Software Foundation.
 #
 #    The Shape is distributed in the hope that it will be useful,
@@ -15,7 +15,7 @@
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with The Shape package.  
+#    along with The Shape package.
 #    If not, see <http://www.gnu.org/licenses/>.
 
 """
@@ -46,17 +46,17 @@ def run(examples=10, select_lowest_mse=False):
     comm = cm.Communicator([ cm.SENSOR_PULL, cm.LEARNING_MODE_PULL,
                              cm.LEARN_REQ, cm.PLAY_REQ, cm.SYNTH_REQ,
                              cm.SYNTH_PLAY_PUSH ])
-    
+
     status = CHILL
     recorder = deque(maxlen=200)
-    
+
     for socket, msg in next(comm):
         if socket == cm.SENSOR_PULL:
             if status == CHILL:
                 continue
 
             recorder.append(msg)
-            
+
             if status == PLAY and len(recorder):
                 gesture = np.stack(recorder)[-HISTORY_LENGTH:]
 
@@ -64,7 +64,7 @@ def run(examples=10, select_lowest_mse=False):
                     gesture = np.pad(gesture,
                                      pad_width=((HISTORY_LENGTH-len(gesture),0), (0,0)),
                                      mode='constant', constant_values=MASK_VALUE)
-                
+
                 comm.PLAY_REQ_SEND(gesture)
                 response = comm.PLAY_REQ_RECV()
 
@@ -86,7 +86,7 @@ def run(examples=10, select_lowest_mse=False):
                 gesture_plot = '{}/sounds/_{}.png'.format(PROJECT_ROOT, ADDITIVE.name)
                 plt.savefig(gesture_plot, dpi=300)
                 plt.clf()
-                
+
                 parameters = [ create(gesture, ADDITIVE.n_parameters) for _ in
                                range(examples) ]
 
