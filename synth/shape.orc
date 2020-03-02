@@ -58,18 +58,22 @@ endop
 ; synthesize sound
 instr 20
 #include "/shape/synth/sine.inc"
+outch 1, a1, 2, a2
 endin
 
 instr 21
 #include "/shape/synth/submono.inc"
+outch 1, a1, 2, a2
 endin
 
 instr 22
 #include "/shape/synth/additive.inc"
+outch 1, a1, 2, a2
 endin
 
 instr 23
 #include "/shape/synth/partikkelsynth.inc"
+outch 1, a1, 2, a2
 endin
 
 ; analyze sound
