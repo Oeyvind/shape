@@ -70,10 +70,10 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
         iv, jv = np.meshgrid(np.arange(gesture_plot_height), np.arange(2), indexing='ij')
         plot_coords = list(zip(np.ndarray.flatten(iv), np.ndarray.flatten(jv)))
 
-        shape = (total_plot_height, 2)
+        plot_shape = (total_plot_height, 2)
         
         for k, g_axis in enumerate(gesture.T):
-            ax = plt.subplot2grid(shape, plot_coords[k])
+            ax = plt.subplot2grid(plot_shape, plot_coords[k])
             ax.plot(x, g_axis, label='gesture axis {}'.format(k), color=colors[k])
             ax.legend(loc='upper right')
             ax.set_ylim(0,1)
@@ -94,7 +94,7 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
             audio_features = ['amp', 'env_crest', 'pitch', 'centroid',
                               'flatness', 's_crest', 'flux', 'mfcc_diff']
 
-            ax = plt.subplot2grid(shape, plot_coords[k])
+            ax = plt.subplot2grid(plot_shape, plot_coords[k])
             ax.plot(x, feature, color=color, label=audio_features[k])
             ax.legend(loc='upper right')
             ax.set_ylim(0,1)

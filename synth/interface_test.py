@@ -51,22 +51,18 @@ class InterfaceTest(unittest.TestCase):
         self.comm.SYNTH_REQ_SEND([ [ create(gesture, ADDITIVE.n_parameters) ],
                                    ADDITIVE.name, gesture, True ])
         sounds = self.comm.SYNTH_REQ_RECV()
-        print('Check', sounds)
-
         
     def test_3d_input(self):
         gesture = np.random.rand(20,3)
         self.comm.SYNTH_REQ_SEND([ [ create(gesture, ADDITIVE.n_parameters) ],
                                    ADDITIVE.name, gesture, True ])
         sounds = self.comm.SYNTH_REQ_RECV()
-        print('Check', sounds)
 
     def test_4d_input(self):
         gesture = np.hstack([ trajectories[1], trajectories[3] ])
         self.comm.SYNTH_REQ_SEND([ [ create(gesture, ADDITIVE.n_parameters) ],
                                    ADDITIVE.name, gesture, True ])
         sounds = self.comm.SYNTH_REQ_RECV()
-        print('Check', sounds)
         
     def evaluate(self, instrument_name, n_parameters):
         trajectory_names = [ 'zero', 'circle', 'line', 'r_line', 'sine',
