@@ -52,7 +52,7 @@ def run(select_lowest_mse=False):
 
     status = CHILL
     recorder = deque(maxlen=200)
-    favourite_log = {}
+    favourite_log = []
 
     for socket, msg in next(comm):
         if socket == cm.SENSOR_PULL:
@@ -82,12 +82,15 @@ def run(select_lowest_mse=False):
         if socket == cm.LEARNING_MODE_PULL:
             if msg == SAVE:
                 json_filename = '{}/favourite/favourite.json'.format(PROJECT_ROOT)
+
+                out = { i: d for i, d in enumerate(favourite_log) }
+                
                 with open(json_filename, 'w') as _file:
-                    json.dump(favourite_log, _file, indent=4, sort_keys=True)
+                    json.dump(out, _file, indent=4, sort_keys=True)
             
             if msg in [LOAD, SAVE]:
                 comm.FILE_IO_REQ_SEND(msg)
-                comm.FILE_IO_REQ_RECV()
+                print(msg,':',comm.FILE_IO_REQ_RECV())
                 continue
             
             if len(recorder) and status == REC and msg in [PLAY, CHILL]:
@@ -146,7 +149,7 @@ def run(select_lowest_mse=False):
 
                     filename, similarity, synth_parameters = sounds[favourite]
 
-                    favourite_log[favourite] = [ filename, similarity ]
+                    favourite_log.append([ filename, similarity ])
                     
                     comm.LEARN_REQ_SEND([ gesture, synth_parameters ])
                     comm.LEARN_REQ_RECV()
