@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 
 import data.communicator as cm
 from core.candidate import create
-from utils.constants import SYNTH_INSTR, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALUE
+from utils.constants import SYNTH_INSTR, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALUE, N_EXAMPLES
 
 REC = 'record'
 PLAY = 'play'
@@ -42,7 +42,7 @@ GESTURE_READY = 'Gesture process ready'
 LEARNING_MODE_READY = 'Learning mode process ready'
 PREFERENCES_READY = 'Preferences process ready'
 
-def run(examples=10, select_lowest_mse=False):
+def run(select_lowest_mse=False):
     comm = cm.Communicator([ cm.SENSOR_PULL, cm.LEARNING_MODE_PULL,
                              cm.LEARN_REQ, cm.PLAY_REQ, cm.SYNTH_REQ,
                              cm.SYNTH_PLAY_PUSH ])
@@ -92,7 +92,7 @@ def run(examples=10, select_lowest_mse=False):
                 plt.clf()
 
                 parameters = [ create(gesture, SYNTH_INSTR.n_parameters) for _ in
-                               range(examples) ]
+                               range(N_EXAMPLES) ]
 
                 comm.SYNTH_REQ_SEND([ parameters, SYNTH_INSTR.name, gesture, True ])
 

@@ -35,6 +35,7 @@ from synth.synth import Synth
 from utils.constants import GESTURE_SAMPLING_FREQUENCY
 
 SYNTH_READY = 'Synth interface process ready'
+colors = list(mcd.XKCD_COLORS.values())
 
 def play_and_analyze(parameters, instrument_name, gesture, plot):
     
@@ -63,8 +64,6 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
             simils.append([ mse(g_axis, feature) for feature in output_analysis.T ])
 
         most_simil = [ np.argmin(s) for s in simils ]
-        
-        colors = list(mcd.XKCD_COLORS.values())
 
         # Plot gesture
         iv, jv = np.meshgrid(np.arange(gesture_plot_height), np.arange(2), indexing='ij')
