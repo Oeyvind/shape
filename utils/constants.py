@@ -5,7 +5,7 @@ GESTURE_SAMPLING_FREQUENCY = 15 # Hz
 HISTORY_LENGTH = 10
 MASK_VALUE = -100
 N_CLASSES = 10
-N_EXAMPLES = 20
+N_EXAMPLES = 2
 
 psynth = namedtuple('Synth', ['name', 'n_parameters'])
 

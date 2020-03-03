@@ -1,3 +1,4 @@
+*.json
 *.pyc
 *.wav
 *.reapeaks
@@ -7,8 +8,5 @@
 *.vst
 *.h5
 *.py~
-<<<<<<< HEAD
-=======
 desktop.ini
->>>>>>> 1a849e04ad9af958de222ba7143377e83c820584
 *.html
