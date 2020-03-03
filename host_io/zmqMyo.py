@@ -114,12 +114,14 @@ def send_loop(name):
         if not kbd.chill:
             rpy = np.clip(np.array(myodata['rpy'])+0.5,0.0,1.0) #get roll/pitch/yaw
             emgsum = np.clip(np.sqrt(np.sum(np.square(np.array(myodata['emg'])))),0.0, 1.0)
+            #quat = myodata['ori']
             emg_filter.append(emgsum)
             emg_avg = np.mean(emg_filter)
-            output = rpy.tolist()
+            quat = np.clip((np.array(myodata['ori'])*0.5)+0.5,0.0,1.0) #get funky quats
+            output = quat.tolist()
             #output.append(emg_avg) #uncomment to include EMG data
             print('{}\r'.format(np.around(output,decimals=2)),end='')
-            comm.SENSOR_PUSH_SEND(output)
+            #comm.SENSOR_PUSH_SEND(output)
         time.sleep(1.0/GESTURE_SAMPLING_FREQUENCY)
 
 x = threading.Thread(target=send_loop, args=(1,))
