@@ -38,10 +38,10 @@ SYNTH_READY = 'Synth interface process ready'
 colors = list(mcd.XKCD_COLORS.values())
 
 def play_and_analyze(parameters, instrument_name, gesture, plot):
-    
+
     duration = len(parameters)/GESTURE_SAMPLING_FREQUENCY
     my_synth = Synth(duration, instrument_name, None, GESTURE_SAMPLING_FREQUENCY)
-        
+
     output_analysis = []
 
     for step_parameters in parameters:
@@ -57,7 +57,7 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
 
         gesture_plot_height = int(np.ceil(gesture.shape[1]/2))
         total_plot_height = int(gesture_plot_height + 4)
-        
+
         # Find the most similar
         simils = []
         for g_axis in gesture.T:
@@ -70,13 +70,13 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
         plot_coords = list(zip(np.ndarray.flatten(iv), np.ndarray.flatten(jv)))
 
         plot_shape = (total_plot_height, 2)
-        
+
         for k, g_axis in enumerate(gesture.T):
             ax = plt.subplot2grid(plot_shape, plot_coords[k])
             ax.plot(x, g_axis, label='gesture axis {}'.format(k), color=colors[k])
             ax.legend(loc='upper right')
             ax.set_ylim(0,1)
-        
+
         # Plot audio features
         iv, jv = np.meshgrid(np.arange(gesture_plot_height, total_plot_height),
                              np.arange(2), indexing='ij')
@@ -97,7 +97,7 @@ def play_and_analyze(parameters, instrument_name, gesture, plot):
             ax.plot(x, feature, color=color, label=audio_features[k])
             ax.legend(loc='upper right')
             ax.set_ylim(0,1)
-            
+
 
         similarity = np.sum([ min(s) for s in simils ])
         plt.savefig('/shape/sounds/{}.png'.format(my_synth.filename), dpi=300)

@@ -28,11 +28,13 @@ import ctcsound, sys, os
 import numpy as np
 import time
 from datetime import datetime
+from utils.constants import PITCH_OVERRIDE
+
 # To train one gesture, instantiate the synth and synthesize audio frames with step_synth(),
 # updating synthesis parameters and retrieveing analysis values for each step
 
 class Synth:
-    def __init__(self, duration, instrument, synthesis_parms, gesture_rate, pitchoverride=1):
+    def __init__(self, duration, instrument, synthesis_parms, gesture_rate):
         self.duration = duration
         self.synthesis_parms = synthesis_parms # numpy array with size 10 for the instr submono
         # settings
@@ -54,7 +56,7 @@ class Synth:
         instruments = ['sine', 'submono', 'additive', 'partikkel']
         synthinstr = instruments.index(instrument) + 20
 
-        self.cs.inputMessage('''i{} 0 {} {}'''.format(synthinstr, duration, pitchoverride))#run synth
+        self.cs.inputMessage('''i{} 0 {} {}'''.format(synthinstr, duration, PITCH_OVERRIDE))#run synth
         self.cs.inputMessage('''i{} 0 {}'''.format(30, duration))#run analyzer
 
         self.parmtable = int(self.cs.controlChannel("parmvalue_table")[0])
