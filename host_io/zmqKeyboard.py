@@ -50,7 +50,7 @@ def my_callback(inp):
     elif inp == ('s'):
         set_status(SAVE)
     elif inp == ('l'):
-        set_status(SAVE)
+        set_status(LOAD)
     else:
         print(inp, 'not in use')
 
