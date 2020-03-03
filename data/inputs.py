@@ -24,6 +24,7 @@ shape:io
 Handles gesture input and learning mode input.
 """
 from collections import deque
+import json
 
 import numpy as np
 import matplotlib
@@ -37,6 +38,8 @@ from utils.constants import SYNTH_INSTR, PROJECT_ROOT, HISTORY_LENGTH, MASK_VALU
 REC = 'record'
 PLAY = 'play'
 CHILL = 'chill'
+SAVE = 'save'
+LOAD = 'load'
 
 GESTURE_READY = 'Gesture process ready'
 LEARNING_MODE_READY = 'Learning mode process ready'
@@ -45,10 +48,11 @@ PREFERENCES_READY = 'Preferences process ready'
 def run(select_lowest_mse=False):
     comm = cm.Communicator([ cm.SENSOR_PULL, cm.LEARNING_MODE_PULL,
                              cm.LEARN_REQ, cm.PLAY_REQ, cm.SYNTH_REQ,
-                             cm.SYNTH_PLAY_PUSH ])
+                             cm.SYNTH_PLAY_PUSH, cm.FILE_IO_REQ ])
 
     status = CHILL
     recorder = deque(maxlen=200)
+    favourite_log = {}
 
     for socket, msg in next(comm):
         if socket == cm.SENSOR_PULL:
@@ -76,6 +80,16 @@ def run(select_lowest_mse=False):
                     comm.SYNTH_PLAY_PUSH_SEND(synth_prms_prediction)
 
         if socket == cm.LEARNING_MODE_PULL:
+            if msg == SAVE:
+                json_filename = '{}/favourite/favourite.json'.format(PROJECT_ROOT)
+                with open(json_filename, 'w') as _file:
+                    json.dump(favourite_log, _file, indent=4, sort_keys=True)
+            
+            if msg in [LOAD, SAVE]:
+                comm.FILE_IO_REQ_SEND(msg)
+                comm.FILE_IO_REQ_RECV()
+                continue
+            
             if len(recorder) and status == REC and msg in [PLAY, CHILL]:
                 print('Recorded {} samples, making suggestions'.format(len(recorder)))
                 gesture = np.stack(recorder)
@@ -130,8 +144,10 @@ def run(select_lowest_mse=False):
                     print('You chose {}, similarity {}.'.format(favourite,
                                                                 sounds[favourite][1]))
 
-                    synth_parameters = sounds[favourite][2]
+                    filename, similarity, synth_parameters = sounds[favourite]
 
+                    favourite_log[favourite] = [ filename, similarity ]
+                    
                     comm.LEARN_REQ_SEND([ gesture, synth_parameters ])
                     comm.LEARN_REQ_RECV()
                 else:

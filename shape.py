@@ -32,12 +32,20 @@ from core import core
 import data.communicator as cm
 import data.inputs as ins
 import synth.interface
-from utils.constants import N_CLASSES
+from utils.constants import N_CLASSES, PROJECT_ROOT
 
+def _load_model(filename):
+    print('Loading', filename)
+    t0 = time.time()
+    model = load_model(filename)
+    print('Model loaded in', np.around(time.time()-t0, decimals=2), 'seconds')
+    
+    return model
 
 def run(n_classes=10, noise_std=.1):
     comm = cm.Communicator([ cm.READY_REP, cm.TRAIN_PUSH, cm.SYNTH_REQ,
-                             cm.PLAY_REP, cm.MODEL_PULL, cm.LEARN_REP ])
+                             cm.PLAY_REP, cm.MODEL_PULL, cm.LEARN_REP,
+                             cm.FILE_IO_REP ])
 
     processes = []
     processes.append(mp.Process(target=core.train, args=(N_CLASSES, False,)))
@@ -50,10 +58,7 @@ def run(n_classes=10, noise_std=.1):
 
     for socket, msg in next(comm):
         if socket == cm.MODEL_PULL:
-            print('Loading', msg)
-            t0 = time.time()
-            model = load_model(msg)
-            print('Model loaded in', np.around(time.time()-t0, decimals=2), 'seconds')
+            model = _load_model(msg)
 
         if socket == cm.PLAY_REP:
             try:
@@ -68,6 +73,21 @@ def run(n_classes=10, noise_std=.1):
             comm.TRAIN_PUSH_SEND(msg)
             comm.LEARN_REP_SEND(True)
 
+        if socket == cm.FILE_IO_REP:
+            favourite = '{}/favourite/favourite.h5'.format(PROJECT_ROOT)
+
+            try:
+                if msg == ins.LOAD:
+                    model = _load_model(favourite)
+                if msg == ins.SAVE:
+                    model.save(favourite, include_optimizer=False)
+                    print('Favourite saved to {}'.format(favourite))
+                comm.FILE_IO_REP_SEND(True)
+            except Error as e:
+                print('Loading/saving error', e)
+                comm.FILE_IO_REP_SEND(False)
+
+                
     for p in processes:
         p.join()
 

@@ -32,6 +32,7 @@ from core.faux_gestures import trajectories
 import data.communicator as cm
 import data.inputs
 
+
 class ShapeTest(unittest.TestCase):
 
     @classmethod
@@ -47,8 +48,8 @@ class ShapeTest(unittest.TestCase):
 
             
     def test_learn_play(self):
-        n = 3
-
+        n = 2
+        
         for gesture in trajectories[:n]:
             self.comm.LEARNING_MODE_PUSH_SEND(data.inputs.REC)
             time.sleep(1)
@@ -59,6 +60,11 @@ class ShapeTest(unittest.TestCase):
             time.sleep(1)
             self.comm.LEARNING_MODE_PUSH_SEND(data.inputs.CHILL)
             time.sleep(10)
+
+        self.comm.LEARNING_MODE_PUSH_SEND(data.inputs.SAVE)
+        time.sleep(5)
+        self.comm.LEARNING_MODE_PUSH_SEND(data.inputs.LOAD)
+        time.sleep(5)
             
     @classmethod
     def tearDownClass(cls):
