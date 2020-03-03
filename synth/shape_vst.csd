@@ -22,8 +22,9 @@ form size(401, 415), caption("Shape"), pluginID("shap")
 image bounds(0, 0, 401, 214), file("shape.png"), corners(10)
 
 hslider bounds(15,175,120,10), channel("pitch"), text("pitch"), range(0.0, 1.0, 0.3)
-hslider bounds(260,175,120,10), channel("vol"), text("vol"), range(-96, 12, 0)
+button bounds(132,175,17,10), channel("pitch_override"), text("po") colour:0("yellow"), colour:1("green")
 button bounds(155,175,80,10), channel("osc"), text("osc"), colour:0("yellow"), colour:1("green")
+hslider bounds(260,175,120,10), channel("vol"), text("vol"), range(-96, 12, 0)
 
 button bounds(20,200,80,10), channel("sine"), text("sine") colour:0("yellow"), colour:1("green")
 button bounds(110,200,80,10), channel("submono"), text("submono"), colour:0("yellow"), colour:1("green")
@@ -110,25 +111,26 @@ kadd_on trigger kadditive, 0.5, 0
 kadd_off trigger kadditive, 0.5, 1
 kpar_on trigger kpartikkel, 0.5, 0
 kpar_off trigger kpartikkel, 0.5, 1
+kpitch_override chnget "pitch_override"
 
 if kosc_on > 0 then
   event "i", 2, 0, -1
 elseif kosc_off > 0 then
   event "i", -2, 0, 0
 elseif ksine_on > 0 then
-  event "i", 20, 0, -1, 2
+  event "i", 20, 0, -1, kpitch_override*2
 elseif ksine_off > 0 then
   event "i", -20, 0, 0
 elseif ksub_on > 0 then
-  event "i", 21, 0, -1, 2
+  event "i", 21, 0, -1, kpitch_override*2
 elseif ksub_off > 0 then
   event "i", -21, 0, 0
 elseif kadd_on > 0 then
-  event "i", 22, 0, -1, 2
+  event "i", 22, 0, -1, kpitch_override*2
 elseif kadd_off > 0 then
   event "i", -22, 0, 0
 elseif kpar_on > 0 then
-  event "i", 23, 0, -1, 2
+  event "i", 23, 0, -1, kpitch_override*2
 elseif kpar_off > 0 then
   event "i", -23, 0, 0
 endif
@@ -166,7 +168,10 @@ nxt_val:
 
 kk1 OSClisten gi_osc_handle, "/shapesynth", "fffffffffffffffffffffffff", k1,k2,k3,k4,k5,k6,k7,k8,k9,k10,k11,k12,k13,k14,k15,k16,k17,k18,k19,k20,k21,k22,k23,k24,k25
 ;kk1 OSClisten gi_osc_handle, "/shapesynth", "ffffffffffffff", ;k1,k2,k3,k4,k5,k6,k7,k8,k9,k10,k11,k12,k13,k14
-printk2 k1
+knew changed k1
+if knew > 0 then
+  printk 0.2, k1
+endif
 
 tablew k1, 0, giParm_values
 tablew k2, 1, giParm_values
