@@ -40,7 +40,7 @@ class ShapeTest(unittest.TestCase):
                                      cm.DEATH_PUB ])
         
         cls.processes = []
-        cls.processes.append(mp.Process(target=data.inputs.run, args=(10, True)))
+        cls.processes.append(mp.Process(target=data.inputs.run, args=(True,)))
 
         for p in cls.processes:
             p.start()
