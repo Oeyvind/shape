@@ -57,7 +57,8 @@ def my_callback(inp):
 def set_status(status):
     if status == CHILL:
         chill = True
-    else: chill = False
+    elif status == REC or status == PLAY:
+        chill = False
     comm.LEARNING_MODE_PUSH_SEND(status)
     print("\nInput status:", status)
 
