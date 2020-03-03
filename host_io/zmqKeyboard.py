@@ -26,7 +26,7 @@ Keyboard control of record enable via ZMK
 import threading
 import data.communicator as cm
 comm = cm.Communicator([cm.LEARNING_MODE_PUSH])
-from data.inputs import REC, PLAY, CHILL
+from data.inputs import REC, PLAY, CHILL, SAVE, LOAD
 chill = 0
 
 class KeyboardThread(threading.Thread):
@@ -47,8 +47,12 @@ def my_callback(inp):
         set_status(PLAY)
     elif inp == ('c'):
         set_status(CHILL)
+    elif inp == ('s'):
+        set_status(SAVE)
+    elif inp == ('l'):
+        set_status(SAVE)
     else:
-        print(inp, 'not in use', inp)
+        print(inp, 'not in use')
 
 def set_status(status):
     if status == CHILL:
