@@ -70,7 +70,10 @@ class BT(object):
         self.ser = serial.Serial(port=tty, baudrate=baudrate, dsrdtr=1)
 
     def recv_packet(self, timeout=None):
-        self.ser.timeout = None
+        try:
+            self.ser.timeout = None
+        except  serial.serialutil.SerialException:
+            print('Serial exception raised')
         while True:  # note that this could block if a packet is never received.
             c = self.ser.read()
             if not c:
